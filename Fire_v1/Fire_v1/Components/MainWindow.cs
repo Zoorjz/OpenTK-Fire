@@ -19,14 +19,64 @@ namespace Fire_v1.Components
    public sealed class MainWindow: GameWindow
     {
 
-        float partiklesLife = 5;
+        float partiklesLifeMAX = 10;
+        float partiklesLifeMIN = 5;
+        //--------------------------------Unity-----------------------------------------
 
+        static FastNoise _fastNoise;
+        public Vector3 _gridSize;
+        public float _increment = 0f;
+        public float ParctikleScale;
+
+
+        public float dirt;
+    
+        public float rangSpawn;
+
+       
+        public float TimeToLive;
+
+        public int ParticlePerFrame = 10;
+
+        public float PowerNoise;
+
+        public int CountPartikle;
+
+        public Vector2 Force;
+
+        public float radiusSpawn;
+
+        //public Vector3 Range;
+
+
+        public float[] RandomfX;
+        
+        public float[] RandomfZ;
+
+        float stepOfsetY = 10;
+    
+        public Vector3 _offset, _offsetSpeed;
+
+
+        int RandomItemX = 0;
+        int RandomItemZ = 0;
+        public float LastRadius;
+
+        float RandomX;
+        float RandomZ;
+
+        public float[] RandomForLife;
+        int RandomItemLife = 0;
+        static int MaxParticles = 10000;
+        float Pressure = 1;
+
+        //--------------------------------Unity-----------------------------------------
         public struct Particle : IComparer<Particle>
         {
             public Vector3 pos, speed;
             public char r, g, b, a; // Color
             public float size, angle, weight;
-            public float life; // Remaining life of the particle. if <0 : dead and unused.
+            public float life, TotalLife;// Remaining life of the particle. if <0 : dead and unused.
             public float cameradistance; // *Squared* distance to the camera. if dead : -1.0f
 
             public DateTime LifeDT;
@@ -36,6 +86,28 @@ namespace Fire_v1.Components
                 return this.cameradistance > that.cameradistance;
             }
 
+            public void ChangePos(float powerN, Vector3 offset, float incr)
+            {
+               
+                float dirX_Plus = _fastNoise.GetSimplex((pos.X + 1) * incr + offset.X, (pos.Y) * incr + offset.Y, (pos.Z) * incr + offset.Z);
+                float dirX_Minus = _fastNoise.GetSimplex((pos.X - 1) * incr + offset.X, (pos.Y) * incr + offset.Y, (pos.Z) * incr + offset.Z);
+                float dirZ_Plus = _fastNoise.GetSimplex((pos.X) * incr + offset.X, (pos.Y) * incr + offset.Y, (pos.Z + 1) * incr + offset.Z);
+                float dirZ_Minus = _fastNoise.GetSimplex((pos.X) * incr + offset.X, (pos.Y) * incr + offset.Y, (pos.Z - 1) * incr + offset.Z);
+                float dirY = _fastNoise.GetSimplex((pos.X) * incr + offset.X, (pos.Y + 1) * incr + offset.Y, (pos.Z) * incr + offset.Z);
+                //float Noise = _fastNoise.GetSimplex(xoff + _offset.x, yoff + _offset.y, zoff + _offset.z) + 1;
+                speed.X += (dirX_Minus + dirX_Plus) * powerN;
+                speed.Z += (dirZ_Minus + dirZ_Plus) * powerN;
+                speed.Y += dirY * powerN;
+                //Vector3 newPos = new Vector3(, , Z);
+                var position = pos;
+                position.X = pos.X + speed.X;
+                position.Y = pos.Y + speed.Y;
+                position.Z = pos.Z + speed.Z;
+                //Debug.WriteLine("positionBefore: " + pos.X.ToString() + " " + pos.Y.ToString() + " " + pos.Z.ToString() + " Life: " + life.ToString() + " Position: ");
+                pos = position;
+                //Debug.WriteLine("positionAfter: " + pos.X.ToString() + " " + pos.Y.ToString() + " " + pos.Z.ToString() + " Life: " + life.ToString() + " Position: ");
+
+            }
             public int Compare(Particle p1, Particle p2)
             {
                 if (p1.cameradistance > p2.cameradistance)
@@ -48,7 +120,7 @@ namespace Fire_v1.Components
             }
         }
 
-        static int MaxParticles = 10;
+      
         //List<Particle> ParticlesContainer = new List<Particle>();
         int LastUsedParticle = 0;
         Particle[] ParticlesContainer = new Particle[MaxParticles];
@@ -56,6 +128,7 @@ namespace Fire_v1.Components
         int FindUnusedParticle()
         {
             int maxLife = 0;
+            float MaxLifeFlot = partiklesLifeMAX;
             for (int i = LastUsedParticle; i < MaxParticles; i++)
             {
                 if (ParticlesContainer[i].life < 0)
@@ -63,8 +136,11 @@ namespace Fire_v1.Components
                     LastUsedParticle = i;
                     return i;
                 }
-                if (ParticlesContainer[i].life > maxLife)
+                if (ParticlesContainer[i].life < MaxLifeFlot)
+                {
+                    MaxLifeFlot = ParticlesContainer[i].life;
                     maxLife = i;
+                }
             }
 
             for (int i = 0; i < LastUsedParticle; i++)
@@ -74,8 +150,11 @@ namespace Fire_v1.Components
                     LastUsedParticle = i;
                     return i;
                 }
-                if (ParticlesContainer[i].life > maxLife)
+                if (ParticlesContainer[i].life < MaxLifeFlot)
+                {
                     maxLife = i;
+                    MaxLifeFlot = ParticlesContainer[i].life;
+                }
             }
 
             return maxLife; // All particles are taken, override oldes one
@@ -141,7 +220,7 @@ namespace Fire_v1.Components
             bmp.UnlockBits(bmpdata);
           
 
-            GL.TexImage2D(TextureTarget.Texture2D,0,OpenTK.Graphics.OpenGL.PixelInternalFormat.Rgba, bmpdata.Width, bmpdata.Height,
+            GL.TexImage2D(TextureTarget.Texture2D,0,OpenTK.Graphics.OpenGL.PixelInternalFormat.Rgba , bmpdata.Width, bmpdata.Height,
                 0,OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte,bmpdata.Scan0);
 
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
@@ -187,10 +266,7 @@ namespace Fire_v1.Components
                 ParticlesContainer[i].cameradistance = -1.0f;
             }
 
-            //int Textur = LoadDDS(@"C:\Users\zoorj\source\repos\OpenTK_lessons\initialisation_1\initialisation_1\components\particle.DDS");
-            //Debug.WriteLine("BItch" + Textur.ToString());
-            //Кароч пока без текстуры потому что это ещё на 24 часа заёб
-            //Надеюсь прокатит 
+         
 
          //    Texture = LoadTexture(@"Components\gray.png");
 
@@ -210,8 +286,30 @@ namespace Fire_v1.Components
              lastTime = DateTime.Now;
 
 
-             //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-             //GL.PatchParameter(PatchParameterInt.PatchVertices, 3);
+            radiusSpawn = 4;
+            LastRadius = 4;
+            //Vector3 newSprite = transform.position;
+            //newSprite.x += _gridSize.x * 0.5f;
+            //newSprite.z += _gridSize.z * 0.5f;
+            //Particals.Add(Instantiate(ParcticleSprite, newSprite, transform.rotation));
+            RandomfX = MakeRandom(radiusSpawn, 200);
+            RandomfZ = MakeRandom(radiusSpawn, 100);
+            //TransformPositionX = transform.position.x;
+            //TransformPositionY = transform.position.y;
+            //TransformPositionZ = transform.position.z;
+            //TransformRotation = transform.rotation;
+
+            _fastNoise = new FastNoise();
+
+            //--------------------------------------------------------
+         
+
+            RandomForLife = MakeRandom(partiklesLifeMIN, partiklesLifeMAX, 50);
+
+            _increment = 5f;
+
+            PowerNoise = 0.01f;
+            _offset = new Vector3(678,3489,-700);
         }
 
         static float[] g_particule_position_size_data = new float[MaxParticles * 4];
@@ -235,11 +333,11 @@ namespace Fire_v1.Components
             var keyState = Keyboard.GetState();
             if (keyState.IsKeyDown(Key.Down))
             {
-                up -= 0.1f;
+                up -= 1f;
             }
             if (keyState.IsKeyDown(Key.Up))
             {
-                up += 0.1f;
+                up += 1f;
             }
             if (keyState.IsKeyDown(Key.Escape))
             {
@@ -261,7 +359,8 @@ namespace Fire_v1.Components
         }
 
         DateTime lastTime;
-        Random rand;
+        bool test = false;
+        static readonly Random rand = new Random();
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             int s = (int)(1f / e.Time);
@@ -277,63 +376,78 @@ namespace Fire_v1.Components
 
             //Debug.WriteLine(e.Time.ToString());
 
-            DateTime currentTime = DateTime.Now;
-            TimeSpan Delta = currentTime - lastTime;
-            lastTime = currentTime;
+            //DateTime currentTime = DateTime.Now;
+            //TimeSpan Delta = currentTime - lastTime;
+            //lastTime = currentTime;
 
             CreateProjection();
-            _ViewMatrix = Matrix4.LookAt(new Vector3(30, 20, 10), new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
-
-
+            _ViewMatrix = Matrix4.LookAt(new Vector3(30+up, 20+up, 10 + up), new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
             //// We will need the camera's position in order to sort the particles
             //// w.r.t the camera's distance.
             //// There should be a getCameraPosition() function in common/controls.cpp, 
             //// but this works too.
             //glm::vec3 CameraPosition(glm::inverse(ViewMatrix)[3]);
 
-            Vector3 CameraPosition = new Vector3(1, 1, 1);
+            Vector3 CameraPosition = new Vector3(30, 20, 1); //тут бред написан. Не знаю пока как вычестя ть это .
 
             Matrix4 ViewProjectionMatrix =  _ViewMatrix * _projectionMatrix ;
 
             int newparticles = (int)(e.Time * 10000.0);
             if (newparticles > (int)(0.016f * 10000.0))
                 newparticles = (int)(0.016f * 10000.0);
-            rand = new Random();
-            for (int i = 0; i < newparticles; i++)
+
+
+            if (LastRadius != radiusSpawn)
             {
-
-
-                //раньше работало так, что если не нашлась свободная частица которая умерла, то берётся нулевая.
-                //Но таким образом никто не успевал дальше чем на один шаг отойти. 
-                //так что попробуем без нулейвой сиграть. 
-
-                int particleIndex = FindUnusedParticle();
-                if (particleIndex > 0)
+                RandomfX = MakeRandom(radiusSpawn, 100);
+                RandomfZ = MakeRandom(radiusSpawn, 200);
+            }
+           
+                for (int i = 0; i < ParticlePerFrame; i++)
                 {
-                    ParticlesContainer[particleIndex].life = partiklesLife; // This particle will live 5 seconds.
-                    ParticlesContainer[particleIndex].pos = new Vector3(0, 0, 0);
 
-                    float spread = 1f;
-                    Vector3 maindir = new Vector3(0.0f, 1.0f, 0.0f);
+                    //раньше работало так, что если не нашлась свободная частица которая умерла, то берётся нулевая.
+                    //Но таким образом никто не успевал дальше чем на один шаг отойти. 
+                    //так что попробуем без нулейвой сиграть. 
+
+                    int particleIndex = FindUnusedParticle();
+
+                    ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife];// This particle will live 2-5 seconds.
+                    ParticlesContainer[particleIndex].TotalLife = ParticlesContainer[particleIndex].life;
+                    RandomItemLife++;
+                    ParticlesContainer[particleIndex].pos = new Vector3(RandomfX[RandomItemX], 0, RandomfX[RandomItemZ]);
+                    RandomItemX++; RandomItemZ++;
+                    float spread = 0.9f;
+                    Vector3 maindir = new Vector3(0.01f, Pressure, 0.01f);
                     // Very bad way to generate a random direction; 
                     // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
                     // combined with some user-controlled parameters (main direction, spread, etc)
-                    Vector3 randomdir = new Vector3(0, 1, 0);
+                    Vector3 randomdir = new Vector3(0, 0.01f, 0);
 
-                    ParticlesContainer[particleIndex].speed = maindir + randomdir * spread;
+                    ParticlesContainer[particleIndex].speed = (maindir + randomdir) * spread;
+                    //Debug.WriteLine(ParticlesContainer[particleIndex].pos.X.ToString() + "  " + ParticlesContainer[particleIndex].pos.Y.ToString() + "  " + ParticlesContainer[particleIndex].pos.Z.ToString() + "   speed: " + ParticlesContainer[particleIndex].speed.X.ToString() + " " + ParticlesContainer[particleIndex].speed.Y.ToString() + " " + ParticlesContainer[particleIndex].speed.Z.ToString() + " Life: " + ParticlesContainer[particleIndex].life.ToString() + " RandomDir: " + randomdir.X.ToString() + "  " + randomdir.Y.ToString() + "  " + randomdir.Z.ToString());
 
 
                     // Very bad way to generate a random color
-                    ParticlesContainer[particleIndex].r = (char)250;
-                    ParticlesContainer[particleIndex].g = (char)0;
+                    ParticlesContainer[particleIndex].r = (char)255;
+                    ParticlesContainer[particleIndex].g = (char)240;
                     ParticlesContainer[particleIndex].b = (char)0;
-                    ParticlesContainer[particleIndex].a = (char)250;
+                    ParticlesContainer[particleIndex].a = (char)100;
 
-                    ParticlesContainer[particleIndex].size = 2f;
+                    ParticlesContainer[particleIndex].size = 1f;
+
+
+                    if (RandomItemX > 98)
+                        RandomItemX = 0;
+                    if (RandomItemZ > 198)
+                        RandomItemZ = 0;
+                    if (RandomItemLife > 48)
+                        RandomItemLife = 0;
+
                 }
-
-            }
-
+               //Debug.WriteLine("GENRARARARARRE");
+          
+            LastRadius = radiusSpawn;
             // Simulate all particles
 
             //GL.enableAlphaTest
@@ -356,8 +470,12 @@ namespace Fire_v1.Components
 
                         // Simulate simple physics : gravity only, no collisions
                         //p.speed += new Vector3(0.0f, -0.1f, 0.0f) ;
-                        p.pos += p.speed;
-                        Debug.WriteLine(p.pos.X.ToString() +  "  "  + p.pos.Y.ToString() + "  "+ p.pos.Z.ToString()  + "   speed: " + p.speed.X.ToString() + " " + p.speed.Y.ToString() + " " + p.speed.Z.ToString() + " Life: " + p.life.ToString());
+                       // Debug.WriteLine("positionBefore: " + p.pos.X.ToString() + " " + p.pos.Y.ToString() + " " + p.pos.Z.ToString() + " Life: " + p.life.ToString() + " Position: ");
+
+                        p.ChangePos(PowerNoise, _offset, _increment);
+                        //Debug.WriteLine("positionAfter: " + p.pos.X.ToString() + " " + p.pos.Y.ToString() + " " + p.pos.Z.ToString() + " Life: " + p.life.ToString() + " Position: ");
+
+                        //Debug.WriteLine(p.pos.X.ToString() +  "  "  + p.pos.Y.ToString() + "  "+ p.pos.Z.ToString()  + "   speed: " + p.speed.X.ToString() + " " + p.speed.Y.ToString() + " " + p.speed.Z.ToString() + " Life: " + p.life.ToString());
                         p.cameradistance = new Vector3(p.pos - CameraPosition).Length;
                         //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
 
@@ -372,19 +490,28 @@ namespace Fire_v1.Components
                         g_particule_color_data[4 * ParticlesCount + 1] = (byte)p.g;
                         g_particule_color_data[4 * ParticlesCount + 2] = (byte)p.b;
                         g_particule_color_data[4 * ParticlesCount + 3] = (byte)p.a;
-
+                        //int render = 0;
+                        //int unrender = 0;
+                        //for (int j = 0; j < ParticlesContainer.Length; j++)
+                        //{
+                        //    if (ParticlesContainer[j].life > 0)
+                        //        render++;
+                        //    else
+                        //        unrender++;
+                        //}
+                        //Debug.WriteLine(render.ToString() + "   " + unrender.ToString());
                     }
                     else
                     {
                         // Particles that just died will be put at the end of the buffer in SortParticles();
                         p.cameradistance = -1.0f;
                     }
-
+                    ParticlesContainer[i] = p;
                     ParticlesCount++;
 
                 }
             }
-
+            _offset.Y -= stepOfsetY;
             //SortParticles();
 
             //printf("%d ",ParticlesCount);
@@ -494,7 +621,7 @@ namespace Fire_v1.Components
             modelView = Matrix4.CreateRotationX((float)(rotx * Math.PI / 180)) * Matrix4.CreateRotationY((float)(rotx * Math.PI / 180)) * Matrix4.CreateRotationZ((float)(rotx * Math.PI / 180)) * Matrix4.CreateTranslation(0, 0, -5.0f);
 
             CreateProjection();
-            _ViewMatrix = Matrix4.LookAt(new Vector3(30, 20, 10), new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
+            _ViewMatrix = Matrix4.LookAt(new Vector3(30+up, 20+up, 10+up), new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
 
             modelView = _ViewMatrix * _projectionMatrix;
 
@@ -575,7 +702,49 @@ namespace Fire_v1.Components
 
             return res;
         }
+        static Random random = new Random();
+        float[] MakeRandom(float s, int count)
+        {
+            float[] Randoms = new float[count];
+
+            for (int i = 0; i < count; i++)
+            {
+                Randoms[i] = random.Next((int)(s * -1.0f), (int)s);
+            }
+            return Randoms;
+
+        }
+        float[] MakeRandom(float s, float k, int count)
+        {
+            if (s < k)
+            {
+                float[] Randoms = new float[count];
+
+                for (int i = 0; i < count; i++)
+                {
+                    double d = random.NextDouble();
+
+                    float p = k - s;
+                    Randoms[i] = s + (p * (float)d);
+                }
+                return Randoms;
+            }
+            return null;
+
+        }
+        //float[] MakeRandomForFire(float r, int count)
+        //{
+        //    float[] Randoms = new float[count];
+
+        //    for (int i = 0; i < count; i++)
+        //    {
+        //        do { }
+        //        Randoms[i] = random.Next((int)(r * -1.0f), (int)r);
 
 
+        //    }
+        //    return Randoms;
+
+        //}
     }
 }

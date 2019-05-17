@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\FastNoise.cs" />
     <Compile Include="Components\MainWindow.cs" />
     <Compile Include="Components\matrixShit.cs" />
     <Compile Include="Program.cs" />
