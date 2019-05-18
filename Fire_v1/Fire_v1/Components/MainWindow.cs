@@ -29,6 +29,9 @@ namespace Fire_v1.Components
         public float ParctikleScale;
 
 
+        public float CentrX = 0;
+        public float CentrY = 0;
+
         public float dirt;
     
         public float rangSpawn;
@@ -64,7 +67,8 @@ namespace Fire_v1.Components
 
         float RandomX;
         float RandomZ;
-
+        public float[] RandomTheta;
+        public int RandomItemTheta=0;
         public float[] RandomForLife;
         int RandomItemLife = 0;
         static int MaxParticles = 20000;
@@ -297,6 +301,8 @@ namespace Fire_v1.Components
             //Particals.Add(Instantiate(ParcticleSprite, newSprite, transform.rotation));
             RandomfX = MakeRandom(radiusSpawn, 200);
             RandomfZ = MakeRandom(radiusSpawn, 100);
+
+            //RandomTheta = MakeRandom(0, 2f*3.14159f , 400);
             //TransformPositionX = transform.position.x;
             //TransformPositionY = transform.position.y;
             //TransformPositionZ = transform.position.z;
@@ -309,9 +315,9 @@ namespace Fire_v1.Components
 
             RandomForLife = MakeRandom(partiklesLifeMIN, partiklesLifeMAX, 50);
 
-            _increment = 5f;
+            _increment = 15f;
 
-            PowerNoise = 0.03f;
+            PowerNoise = 0.05f;
             _offset = new Vector3(678,3489,-700);
         }
 
@@ -406,55 +412,63 @@ namespace Fire_v1.Components
                 RandomfZ = MakeRandom(radiusSpawn, 200);
             }
            
-                for (int i = 0; i < ParticlePerFrame; i++)
-                {
+            for (int i = 0; i < ParticlePerFrame; i++)
+            {
 
-                    //раньше работало так, что если не нашлась свободная частица которая умерла, то берётся нулевая.
-                    //Но таким образом никто не успевал дальше чем на один шаг отойти. 
-                    //так что попробуем без нулейвой сиграть. 
+                //раньше работало так, что если не нашлась свободная частица которая умерла, то берётся нулевая.
+                //Но таким образом никто не успевал дальше чем на один шаг отойти. 
+                //так что попробуем без нулейвой сиграть. 
 
-                    int particleIndex = FindUnusedParticle();
+                int particleIndex = FindUnusedParticle();
 
-                    ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife];// This particle will live 2-5 seconds.
-                    ParticlesContainer[particleIndex].TotalLife = ParticlesContainer[particleIndex].life;
-                    RandomItemLife++;
+                ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife];// This particle will live 2-5 seconds.
+                ParticlesContainer[particleIndex].TotalLife = ParticlesContainer[particleIndex].life;
+                RandomItemLife++;
 
 
-                    ParticlesContainer[particleIndex].pos = new Vector3(RandomfX[RandomItemX], 0, RandomfX[RandomItemZ]);
+                float theta = (float)(2f * Math.PI) * (float)random.NextDouble();
+                float distance = (float)random.NextDouble() * radiusSpawn;
+
+                float px = distance * (float)Math.Cos(theta) + CentrX;
+                float py = distance * (float)Math.Sin(theta) + CentrY;
+
+                ParticlesContainer[particleIndex].pos = new Vector3(px, 0, py);
                 
-                   RandomItemX++; RandomItemZ++;
-                    float spread = 0.9f;
-                    Vector3 maindir = new Vector3(0.01f, PressureMAX, 0.01f);
+                RandomItemX++; RandomItemZ++;
+                float spread = 0.9f;
+                Vector3 maindir = new Vector3(0.01f, PressureMAX, 0.01f);
                    
-                    // Very bad way to generate a random direction; 
-                    // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
-                    // combined with some user-controlled parameters (main direction, spread, etc)
-                    double RandPress = random.NextDouble();
-                    float PressureRes = PressureMIN + (PressureMAX - PressureMIN)* (float)RandPress;
-                    Vector3 randomdir = new Vector3(0, PressureRes, 0);
+                // Very bad way to generate a random direction; 
+                // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
+                // combined with some user-controlled parameters (main direction, spread, etc)
+                double RandPress = random.NextDouble();
+                float PressureRes = PressureMIN + (PressureMAX - PressureMIN)* (float)RandPress;
+                Vector3 randomdir = new Vector3(0, PressureRes, 0);
 
-                    ParticlesContainer[particleIndex].speed = (maindir + randomdir) * spread;
-                    //Debug.WriteLine(ParticlesContainer[particleIndex].pos.X.ToString() + "  " + ParticlesContainer[particleIndex].pos.Y.ToString() + "  " + ParticlesContainer[particleIndex].pos.Z.ToString() + "   speed: " + ParticlesContainer[particleIndex].speed.X.ToString() + " " + ParticlesContainer[particleIndex].speed.Y.ToString() + " " + ParticlesContainer[particleIndex].speed.Z.ToString() + " Life: " + ParticlesContainer[particleIndex].life.ToString() + " RandomDir: " + randomdir.X.ToString() + "  " + randomdir.Y.ToString() + "  " + randomdir.Z.ToString());
+                ParticlesContainer[particleIndex].speed = (maindir + randomdir) * spread;
+                //Debug.WriteLine(ParticlesContainer[particleIndex].pos.X.ToString() + "  " + ParticlesContainer[particleIndex].pos.Y.ToString() + "  " + ParticlesContainer[particleIndex].pos.Z.ToString() + "   speed: " + ParticlesContainer[particleIndex].speed.X.ToString() + " " + ParticlesContainer[particleIndex].speed.Y.ToString() + " " + ParticlesContainer[particleIndex].speed.Z.ToString() + " Life: " + ParticlesContainer[particleIndex].life.ToString() + " RandomDir: " + randomdir.X.ToString() + "  " + randomdir.Y.ToString() + "  " + randomdir.Z.ToString());
 
 
-                    // Very bad way to generate a random color
-                    ParticlesContainer[particleIndex].r = (char)251;
-                    ParticlesContainer[particleIndex].g = (char)255;
-                    ParticlesContainer[particleIndex].b = (char)172;
-                    ParticlesContainer[particleIndex].a = (char)TransparentMIN;
+                // Very bad way to generate a random color
+                ParticlesContainer[particleIndex].r = (char)251;
+                ParticlesContainer[particleIndex].g = (char)255;
+                ParticlesContainer[particleIndex].b = (char)172;
+                ParticlesContainer[particleIndex].a = (char)TransparentMIN;
                 ParticlesContainer[particleIndex].cameradistance = new Vector3(ParticlesContainer[particleIndex].pos - CameraPosition).Length;
                 ParticlesContainer[particleIndex].bornSize = bornSize;
-                    ParticlesContainer[particleIndex].size = bornSize;
+                ParticlesContainer[particleIndex].size = bornSize;
 
 
-                    if (RandomItemX > 98)
-                        RandomItemX = 0;
-                    if (RandomItemZ > 198)
-                        RandomItemZ = 0;
-                    if (RandomItemLife > 48)
-                        RandomItemLife = 0;
+                if (RandomItemX > 98)
+                    RandomItemX = 0;
+                if (RandomItemZ > 198)
+                    RandomItemZ = 0;
+                if (RandomItemLife > 48)
+                    RandomItemLife = 0;
+                if (RandomItemLife > 48)
+                    RandomItemLife = 0;
 
-                }
+            }
                //Debug.WriteLine("GENRARARARARRE");
           
             LastRadius = radiusSpawn;
