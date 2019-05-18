@@ -19,13 +19,13 @@ namespace Fire_v1.Components
    public sealed class MainWindow: GameWindow
     {
 
-        float partiklesLifeMAX = 10;
-        float partiklesLifeMIN = 5;
+        float partiklesLifeMAX = 1;
+        float partiklesLifeMIN = 0.2f;
         //--------------------------------Unity-----------------------------------------
 
         static FastNoise _fastNoise;
         public Vector3 _gridSize;
-        public float _increment = 0f;
+        public float _increment = 1.0f;
         public float ParctikleScale;
 
 
@@ -36,7 +36,7 @@ namespace Fire_v1.Components
        
         public float TimeToLive;
 
-        public int ParticlePerFrame = 10;
+        public int ParticlePerFrame = 700;
 
         public float PowerNoise;
 
@@ -47,7 +47,7 @@ namespace Fire_v1.Components
         public float radiusSpawn;
 
         //public Vector3 Range;
-
+        public int CountParticlesl =0;
 
         public float[] RandomfX;
         
@@ -67,15 +67,18 @@ namespace Fire_v1.Components
 
         public float[] RandomForLife;
         int RandomItemLife = 0;
-        static int MaxParticles = 10000;
-        float Pressure = 1;
+        static int MaxParticles = 20000;
+        float PressureMAX = 0.6f;
+        float PressureMIN= 0.3f;
+        float bornSize =2f;
+        float TransparentMIN = 255;
 
         //--------------------------------Unity-----------------------------------------
         public struct Particle : IComparer<Particle>
         {
             public Vector3 pos, speed;
             public char r, g, b, a; // Color
-            public float size, angle, weight;
+            public float size, bornSize, angle, weight;
             public float life, TotalLife;// Remaining life of the particle. if <0 : dead and unused.
             public float cameradistance; // *Squared* distance to the camera. if dead : -1.0f
 
@@ -110,9 +113,9 @@ namespace Fire_v1.Components
             }
             public int Compare(Particle p1, Particle p2)
             {
-                if (p1.cameradistance > p2.cameradistance)
-                    return 1;
                 if (p1.cameradistance < p2.cameradistance)
+                    return 1;
+                if (p1.cameradistance > p2.cameradistance)
                     return -1;
                 else
                     return 0;
@@ -308,7 +311,7 @@ namespace Fire_v1.Components
 
             _increment = 5f;
 
-            PowerNoise = 0.01f;
+            PowerNoise = 0.03f;
             _offset = new Vector3(678,3489,-700);
         }
 
@@ -379,16 +382,16 @@ namespace Fire_v1.Components
             //DateTime currentTime = DateTime.Now;
             //TimeSpan Delta = currentTime - lastTime;
             //lastTime = currentTime;
-
+            Vector3 CameraPosition = new Vector3(30 + up, 20 + up, 10 + up);
             CreateProjection();
-            _ViewMatrix = Matrix4.LookAt(new Vector3(30+up, 20+up, 10 + up), new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
+            _ViewMatrix = Matrix4.LookAt(CameraPosition, new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
             //// We will need the camera's position in order to sort the particles
             //// w.r.t the camera's distance.
             //// There should be a getCameraPosition() function in common/controls.cpp, 
             //// but this works too.
             //glm::vec3 CameraPosition(glm::inverse(ViewMatrix)[3]);
 
-            Vector3 CameraPosition = new Vector3(30, 20, 1); //тут бред написан. Не знаю пока как вычестя ть это .
+           //тут бред написан. Не знаю пока как вычестя ть это .
 
             Matrix4 ViewProjectionMatrix =  _ViewMatrix * _projectionMatrix ;
 
@@ -415,26 +418,33 @@ namespace Fire_v1.Components
                     ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife];// This particle will live 2-5 seconds.
                     ParticlesContainer[particleIndex].TotalLife = ParticlesContainer[particleIndex].life;
                     RandomItemLife++;
+
+
                     ParticlesContainer[particleIndex].pos = new Vector3(RandomfX[RandomItemX], 0, RandomfX[RandomItemZ]);
-                    RandomItemX++; RandomItemZ++;
+                
+                   RandomItemX++; RandomItemZ++;
                     float spread = 0.9f;
-                    Vector3 maindir = new Vector3(0.01f, Pressure, 0.01f);
+                    Vector3 maindir = new Vector3(0.01f, PressureMAX, 0.01f);
+                   
                     // Very bad way to generate a random direction; 
                     // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
                     // combined with some user-controlled parameters (main direction, spread, etc)
-                    Vector3 randomdir = new Vector3(0, 0.01f, 0);
+                    double RandPress = random.NextDouble();
+                    float PressureRes = PressureMIN + (PressureMAX - PressureMIN)* (float)RandPress;
+                    Vector3 randomdir = new Vector3(0, PressureRes, 0);
 
                     ParticlesContainer[particleIndex].speed = (maindir + randomdir) * spread;
                     //Debug.WriteLine(ParticlesContainer[particleIndex].pos.X.ToString() + "  " + ParticlesContainer[particleIndex].pos.Y.ToString() + "  " + ParticlesContainer[particleIndex].pos.Z.ToString() + "   speed: " + ParticlesContainer[particleIndex].speed.X.ToString() + " " + ParticlesContainer[particleIndex].speed.Y.ToString() + " " + ParticlesContainer[particleIndex].speed.Z.ToString() + " Life: " + ParticlesContainer[particleIndex].life.ToString() + " RandomDir: " + randomdir.X.ToString() + "  " + randomdir.Y.ToString() + "  " + randomdir.Z.ToString());
 
 
                     // Very bad way to generate a random color
-                    ParticlesContainer[particleIndex].r = (char)255;
-                    ParticlesContainer[particleIndex].g = (char)240;
-                    ParticlesContainer[particleIndex].b = (char)0;
-                    ParticlesContainer[particleIndex].a = (char)100;
-
-                    ParticlesContainer[particleIndex].size = 1f;
+                    ParticlesContainer[particleIndex].r = (char)251;
+                    ParticlesContainer[particleIndex].g = (char)255;
+                    ParticlesContainer[particleIndex].b = (char)172;
+                    ParticlesContainer[particleIndex].a = (char)TransparentMIN;
+                ParticlesContainer[particleIndex].cameradistance = new Vector3(ParticlesContainer[particleIndex].pos - CameraPosition).Length;
+                ParticlesContainer[particleIndex].bornSize = bornSize;
+                    ParticlesContainer[particleIndex].size = bornSize;
 
 
                     if (RandomItemX > 98)
@@ -449,7 +459,7 @@ namespace Fire_v1.Components
           
             LastRadius = radiusSpawn;
             // Simulate all particles
-
+             SortParticles();
             //GL.enableAlphaTest
             //GL.AlpchaFunc
 
@@ -473,23 +483,66 @@ namespace Fire_v1.Components
                        // Debug.WriteLine("positionBefore: " + p.pos.X.ToString() + " " + p.pos.Y.ToString() + " " + p.pos.Z.ToString() + " Life: " + p.life.ToString() + " Position: ");
 
                         p.ChangePos(PowerNoise, _offset, _increment);
-                        //Debug.WriteLine("positionAfter: " + p.pos.X.ToString() + " " + p.pos.Y.ToString() + " " + p.pos.Z.ToString() + " Life: " + p.life.ToString() + " Position: ");
-
-                        //Debug.WriteLine(p.pos.X.ToString() +  "  "  + p.pos.Y.ToString() + "  "+ p.pos.Z.ToString()  + "   speed: " + p.speed.X.ToString() + " " + p.speed.Y.ToString() + " " + p.speed.Z.ToString() + " Life: " + p.life.ToString());
                         p.cameradistance = new Vector3(p.pos - CameraPosition).Length;
+                        float calcLife =p.life / p.TotalLife;
+                        //Debug.WriteLine(calcLife.ToString());
                         //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
+                        int r;
+                        int g;
+                        int b;
+                        float gradientPr = 1f - calcLife;
+
+
+
+                        Vector3 Step0 = new Vector3(252, 255, 172);// Обязательно что бы все занчения УБЫВАЛИ 
+                        Vector3 Step1 = new Vector3(251,164,66);
+                        Vector3 Step2 = new Vector3(212, 48, 66);
+                        Vector3 Step3 = new Vector3(5, 0, 0);
+
+                        if (gradientPr < 0.45f)
+                        {
+                            int razniX = (int)(Step0.X - Step1.X);
+                            int razniY = (int)(Step0.Y - Step1.Y);
+                            int razniZ = (int)(Step0.Z - Step1.Z);
+
+                            p.r = (char)(Step0.X - (razniX * gradientPr));
+                            p.g = (char)(Step0.Y - (razniY * gradientPr));
+                            p.b = (char)(Step0.Z - (razniZ * gradientPr));
+                        }
+                        if (gradientPr >= 0.45f && gradientPr < 0.75f)
+                        {
+                            int razniX = (int)(Step1.X - Step2.X);
+                            int razniY = (int)(Step1.Y - Step2.Y);
+                            int razniZ = (int)(Step1.Z - Step2.Z);
+
+                            p.r = (char)(Step1.X - (razniX * gradientPr));
+                            p.g = (char)(Step1.Y - (razniY * gradientPr));
+                            p.b = (char)(Step1.Z - (razniZ * gradientPr));
+                        }
+                        if (gradientPr >= 0.75f)
+                        {
+                            int razniX = (int)(Step2.X - Step3.X);
+                            int razniY = (int)(Step2.Y - Step3.Y);
+                            int razniZ = (int)(Step2.Z - Step3.Z);
+
+                            p.r = (char)(Step2.X - (razniX * gradientPr));
+                            p.g = (char)(Step2.Y - (razniY * gradientPr));
+                            p.b = (char)(Step2.Z - (razniZ * gradientPr));
+                        }
+
 
                         // Fill the GPU buffer
                         g_particule_position_size_data[4 * ParticlesCount + 0] = p.pos.X;
                         g_particule_position_size_data[4 * ParticlesCount + 1] = p.pos.Y;
                         g_particule_position_size_data[4 * ParticlesCount + 2] = p.pos.Z;
 
-                        g_particule_position_size_data[4 * ParticlesCount + 3] = p.size;
+                        g_particule_position_size_data[4 * ParticlesCount + 3] = p.size * calcLife;
 
                         g_particule_color_data[4 * ParticlesCount + 0] = (byte)p.r;
                         g_particule_color_data[4 * ParticlesCount + 1] = (byte)p.g;
                         g_particule_color_data[4 * ParticlesCount + 2] = (byte)p.b;
-                        g_particule_color_data[4 * ParticlesCount + 3] = (byte)p.a;
+                        g_particule_color_data[4 * ParticlesCount + 3] = (byte)((char)(TransparentMIN * calcLife));
+                        CountParticlesl++;
                         //int render = 0;
                         //int unrender = 0;
                         //for (int j = 0; j < ParticlesContainer.Length; j++)
@@ -504,6 +557,7 @@ namespace Fire_v1.Components
                     else
                     {
                         // Particles that just died will be put at the end of the buffer in SortParticles();
+                        p.ChangePos(PowerNoise, _offset, _increment);
                         p.cameradistance = -1.0f;
                     }
                     ParticlesContainer[i] = p;
@@ -512,7 +566,7 @@ namespace Fire_v1.Components
                 }
             }
             _offset.Y -= stepOfsetY;
-            //SortParticles();
+           
 
             //printf("%d ",ParticlesCount);
 
@@ -660,6 +714,7 @@ namespace Fire_v1.Components
 //            Debug.WriteLine(ParticlesCount);
 
             SwapBuffers();
+            CountParticlesl = 0;
         }
         Matrix4 modelView;
          public int ParticlesCount = 0;
@@ -709,7 +764,9 @@ namespace Fire_v1.Components
 
             for (int i = 0; i < count; i++)
             {
-                Randoms[i] = random.Next((int)(s * -1.0f), (int)s);
+                float r1 = random.Next((int)(s * -1.0f), (int)s);
+                double d = random.NextDouble();
+                Randoms[i] =r1 + (float)d;
             }
             return Randoms;
 
