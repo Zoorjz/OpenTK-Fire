@@ -41,7 +41,7 @@ namespace Fire_v1.Components
        
         public float TimeToLive;
 
-        public int ParticlePerFrame = 700;
+        public int ParticlePerFrame = 1000;
 
         public float PowerNoise;
 
@@ -73,11 +73,12 @@ namespace Fire_v1.Components
         public int RandomItemTheta=0;
         public float[] RandomForLife;
         int RandomItemLife = 0;
-        static int MaxParticles = 20000;
+        static int MaxParticles = 25000;
         float PressureMAX = 0.6f;
         float PressureMIN= 0.3f;
         float bornSize =2f;
         float TransparentMIN = 255;
+      
 
         //--------------------------------Unity-----------------------------------------
         public struct Particle : IComparer<Particle>
@@ -87,7 +88,7 @@ namespace Fire_v1.Components
             public float size, bornSize, angle, weight;
             public float life, TotalLife;// Remaining life of the particle. if <0 : dead and unused.
             public float cameradistance; // *Squared* distance to the camera. if dead : -1.0f
-
+            public float calcLife;
             public DateTime LifeDT;
 
             public bool Sravn (Particle that)
@@ -132,8 +133,9 @@ namespace Fire_v1.Components
       
         //List<Particle> ParticlesContainer = new List<Particle>();
         int LastUsedParticle = 0;
+        int ItemLastB = 0;
         Particle[] ParticlesContainer = new Particle[MaxParticles];
-
+        Particle[] LastB = new Particle[MaxParticles];
         int FindUnusedParticle()
         {
             int maxLife = 0;
@@ -172,11 +174,14 @@ namespace Fire_v1.Components
         {
             Array.Sort(ParticlesContainer, new Particle());
         }
+        void SortParticlesLastB()
+        {
+            Array.Sort(LastB, new Particle());
+        }
 
+        //OIT - Без сортировки прозрачность
 
-       //OIT - Без сортировки прозрачность
-
-            public MainWindow()
+        public MainWindow()
         : base(1280, // initial width
         720, // initial height
         GraphicsMode.Default,
@@ -201,7 +206,7 @@ namespace Fire_v1.Components
         protected override void OnLoad(EventArgs e)
         {
             //CursorVisible = true;
-
+            LastB = new Particle[MaxParticles];
             //Particle p1 = new Particle { cameradistance = 1f };
             //Particle p2 = new Particle { cameradistance = 2222f };
             //Particle p3 = new Particle { cameradistance = 167f };
@@ -335,6 +340,7 @@ namespace Fire_v1.Components
         //int Texture;
         int TexturID;
         int TextuirePlane;
+        bool test = false;
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             HandleKeyboard();
@@ -354,6 +360,12 @@ namespace Fire_v1.Components
             {
                 Exit();
             }
+            if (keyState.IsKeyDown(Key.T))
+            {
+                test = true;
+            }
+            else
+                test = false;
         }
         float up= 1;
         Matrix4 _ViewMatrix;
@@ -415,16 +427,8 @@ namespace Fire_v1.Components
             }
            
             for (int i = 0; i < ParticlePerFrame; i++)
-            {
-
-                //раньше работало так, что если не нашлась свободная частица которая умерла, то берётся нулевая.
-                //Но таким образом никто не успевал дальше чем на один шаг отойти. 
-                //так что попробуем без нулейвой сиграть. 
-
+            { 
                 int particleIndex = FindUnusedParticle();
-
-               
-
 
                 float theta = (float)(2f * Math.PI) * (float)random.NextDouble();
                 float distanceDouble = (float)random.NextDouble();
@@ -435,7 +439,7 @@ namespace Fire_v1.Components
 
                 ParticlesContainer[particleIndex].pos = new Vector3(px, 0, py);
                 
-                RandomItemX++; RandomItemZ++;
+         
                 float spread = 0.9f;
                 Vector3 maindir = new Vector3(0.01f, PressureMAX, 0.01f);
                 if (EnableRadiusUse)
@@ -444,9 +448,7 @@ namespace Fire_v1.Components
                     ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife];
                 ParticlesContainer[particleIndex].TotalLife = ParticlesContainer[particleIndex].life;
                 RandomItemLife++;
-                // Very bad way to generate a random direction; 
-                // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
-                // combined with some user-controlled parameters (main direction, spread, etc)
+               
                 double RandPress = random.NextDouble();
                 float PressureRes = PressureMIN + (PressureMAX - PressureMIN)* (float)RandPress;
                 Vector3 randomdir = new Vector3(0, PressureRes, 0);
@@ -463,48 +465,34 @@ namespace Fire_v1.Components
                 ParticlesContainer[particleIndex].cameradistance = new Vector3(ParticlesContainer[particleIndex].pos - CameraPosition).Length;
                 ParticlesContainer[particleIndex].bornSize = bornSize;
                 ParticlesContainer[particleIndex].size = bornSize;
-
-
-                if (RandomItemX > 98)
-                    RandomItemX = 0;
-                if (RandomItemZ > 198)
-                    RandomItemZ = 0;
+ 
                 if (RandomItemLife > 48)
                     RandomItemLife = 0;
-                if (RandomItemLife > 48)
-                    RandomItemLife = 0;
-
+           
             }
-               //Debug.WriteLine("GENRARARARARRE");
-          
+               
             LastRadius = radiusSpawn;
-            // Simulate all particles
-             SortParticles();
-            //GL.enableAlphaTest
-            //GL.AlpchaFunc
-
-
+     
+            if (!test)
+                SortParticles();
+      
             int ParticlesCount = 0;
             for (int i = 0; i < MaxParticles; i++)
             {
 
-                Particle p = ParticlesContainer[i]; // shortcut
-
-                if (p.life > 0.0f)
+                
+                if (ParticlesContainer[i].life > 0.0f)
                 {
-
+                    Particle p = ParticlesContainer[i];
                     // Decrease life
                     p.life -= (float)e.Time;
                     if (p.life > 0.0f)
                     {
 
-                        // Simulate simple physics : gravity only, no collisions
-                        //p.speed += new Vector3(0.0f, -0.1f, 0.0f) ;
-                       // Debug.WriteLine("positionBefore: " + p.pos.X.ToString() + " " + p.pos.Y.ToString() + " " + p.pos.Z.ToString() + " Life: " + p.life.ToString() + " Position: ");
-
                         p.ChangePos(PowerNoise, _offset, _increment);
                         p.cameradistance = new Vector3(p.pos - CameraPosition).Length;
                         float calcLife =p.life / p.TotalLife;
+                        p.calcLife = calcLife;
                         //Debug.WriteLine(calcLife.ToString());
                         //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
                         
@@ -547,34 +535,43 @@ namespace Fire_v1.Components
                         }
 
 
-                        // Fill the GPU buffer
-                        g_particule_position_size_data[4 * ParticlesCount + 0] = p.pos.X;
-                        g_particule_position_size_data[4 * ParticlesCount + 1] = p.pos.Y;
-                        g_particule_position_size_data[4 * ParticlesCount + 2] = p.pos.Z;
+                        if (test)
+                        {
+                            LastB[ItemLastB].pos = p.pos;
+                            LastB[ItemLastB].life = p.life;
+                            LastB[ItemLastB].size = p.size;
+                            LastB[ItemLastB].TotalLife = p.TotalLife;
+                            LastB[ItemLastB].bornSize = p.bornSize;
+                            LastB[ItemLastB].calcLife = p.calcLife;
+                            LastB[ItemLastB].cameradistance = p.cameradistance;
+                            LastB[ItemLastB].r = p.r;
+                            LastB[ItemLastB].g = p.g;
+                            LastB[ItemLastB].b = p.b;
+                            ItemLastB++;
+                        }
+                        else
+                        {
+                            // Fill the GPU buffer
+                            g_particule_position_size_data[4 * ParticlesCount + 0] = p.pos.X;
+                            g_particule_position_size_data[4 * ParticlesCount + 1] = p.pos.Y;
+                            g_particule_position_size_data[4 * ParticlesCount + 2] = p.pos.Z;
 
-                        g_particule_position_size_data[4 * ParticlesCount + 3] = p.size * calcLife;
+                            g_particule_position_size_data[4 * ParticlesCount + 3] = p.bornSize * calcLife;
 
-                        g_particule_color_data[4 * ParticlesCount + 0] = (byte)p.r;
-                        g_particule_color_data[4 * ParticlesCount + 1] = (byte)p.g;
-                        g_particule_color_data[4 * ParticlesCount + 2] = (byte)p.b;
-                        g_particule_color_data[4 * ParticlesCount + 3] = (byte)((char)(TransparentMIN * calcLife));
-                        CountParticlesl++;
-                        //int render = 0;
-                        //int unrender = 0;
-                        //for (int j = 0; j < ParticlesContainer.Length; j++)
-                        //{
-                        //    if (ParticlesContainer[j].life > 0)
-                        //        render++;
-                        //    else
-                        //        unrender++;
-                        //}
-                        //Debug.WriteLine(render.ToString() + "   " + unrender.ToString());
+                            g_particule_color_data[4 * ParticlesCount + 0] = (byte)p.r;
+                            g_particule_color_data[4 * ParticlesCount + 1] = (byte)p.g;
+                            g_particule_color_data[4 * ParticlesCount + 2] = (byte)p.b;
+                            g_particule_color_data[4 * ParticlesCount + 3] = (byte)((char)(TransparentMIN * calcLife));
+                            CountParticlesl++;
+                        }
                     }
                     else
                     {
-                        // Particles that just died will be put at the end of the buffer in SortParticles();
+                      
                         p.ChangePos(PowerNoise, _offset, _increment);
                         p.cameradistance = -1.0f;
+                        LastB[ItemLastB].cameradistance = -1.0f;
+                        ItemLastB++;
                     }
                     ParticlesContainer[i] = p;
                     ParticlesCount++;
@@ -582,11 +579,33 @@ namespace Fire_v1.Components
                 }
             }
             _offset.Y -= stepOfsetY;
-           
+
+            if (test)
+            { 
+                SortParticlesLastB();
+
+
+                for (int i = 0; i < ItemLastB; i++)
+                {
+                    if (LastB[i].life > 0.0f )
+                    {
+                        g_particule_position_size_data[4 * i + 0] = LastB[i].pos.X;
+                        g_particule_position_size_data[4 * i + 1] = LastB[i].pos.Y;
+                        g_particule_position_size_data[4 * i + 2] = LastB[i].pos.Z;
+
+                        g_particule_position_size_data[4 * i + 3] = LastB[i].bornSize * LastB[i].calcLife;
+
+                        g_particule_color_data[4 * i + 0] = (byte)LastB[i].r;
+                        g_particule_color_data[4 * i + 1] = (byte)LastB[i].g;
+                        g_particule_color_data[4 * i + 2] = (byte)LastB[i].b;
+                        g_particule_color_data[4 * i + 3] = (byte)((char)(TransparentMIN * LastB[i].calcLife));
+                    }
+                }
+            }
 
             //printf("%d ",ParticlesCount);
 
-
+            ItemLastB = 0;
             // Update the buffers that OpenGL uses for rendering.
             // There are much more sophisticated means to stream data from the CPU to the GPU, 
             // but this is outside the scope of this tutorial.
