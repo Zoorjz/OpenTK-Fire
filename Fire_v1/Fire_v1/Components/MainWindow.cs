@@ -19,6 +19,8 @@ namespace Fire_v1.Components
    public sealed class MainWindow: GameWindow
     {
 
+        bool EnableRadiusUse = false;
+
         float partiklesLifeMAX = 1;
         float partiklesLifeMIN = 0.2f;
         //--------------------------------Unity-----------------------------------------
@@ -65,8 +67,8 @@ namespace Fire_v1.Components
         int RandomItemZ = 0;
         public float LastRadius;
 
-        float RandomX;
-        float RandomZ;
+        //float RandomX;
+        //float RandomZ;
         public float[] RandomTheta;
         public int RandomItemTheta=0;
         public float[] RandomForLife;
@@ -294,7 +296,7 @@ namespace Fire_v1.Components
 
 
             radiusSpawn = 4;
-            LastRadius = 4;
+            LastRadius = radiusSpawn;
             //Vector3 newSprite = transform.position;
             //newSprite.x += _gridSize.x * 0.5f;
             //newSprite.z += _gridSize.z * 0.5f;
@@ -330,7 +332,7 @@ namespace Fire_v1.Components
         int CameraUp_worldspace_ID;
         int ViewProjMatrixID;
         int billboard_vertex_buffer;
-        int Texture;
+        //int Texture;
         int TexturID;
         int TextuirePlane;
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -368,7 +370,7 @@ namespace Fire_v1.Components
         }
 
         DateTime lastTime;
-        bool test = false;
+        //bool test = false;
         static readonly Random rand = new Random();
         protected override void OnRenderFrame(FrameEventArgs e)
         {
@@ -421,13 +423,12 @@ namespace Fire_v1.Components
 
                 int particleIndex = FindUnusedParticle();
 
-                ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife];// This particle will live 2-5 seconds.
-                ParticlesContainer[particleIndex].TotalLife = ParticlesContainer[particleIndex].life;
-                RandomItemLife++;
+               
 
 
                 float theta = (float)(2f * Math.PI) * (float)random.NextDouble();
-                float distance = (float)random.NextDouble() * radiusSpawn;
+                float distanceDouble = (float)random.NextDouble();
+                float distance = distanceDouble * radiusSpawn;
 
                 float px = distance * (float)Math.Cos(theta) + CentrX;
                 float py = distance * (float)Math.Sin(theta) + CentrY;
@@ -437,7 +438,12 @@ namespace Fire_v1.Components
                 RandomItemX++; RandomItemZ++;
                 float spread = 0.9f;
                 Vector3 maindir = new Vector3(0.01f, PressureMAX, 0.01f);
-                   
+                if (EnableRadiusUse)
+                    ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife] * (0.1f + 1 - distanceDouble);// This particle will live 2-5 seconds.
+                else
+                    ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife];
+                ParticlesContainer[particleIndex].TotalLife = ParticlesContainer[particleIndex].life;
+                RandomItemLife++;
                 // Very bad way to generate a random direction; 
                 // See for instance http://stackoverflow.com/questions/5408276/python-uniform-spherical-distribution instead,
                 // combined with some user-controlled parameters (main direction, spread, etc)
@@ -501,12 +507,8 @@ namespace Fire_v1.Components
                         float calcLife =p.life / p.TotalLife;
                         //Debug.WriteLine(calcLife.ToString());
                         //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
-                        int r;
-                        int g;
-                        int b;
+                        
                         float gradientPr = 1f - calcLife;
-
-
 
                         Vector3 Step0 = new Vector3(252, 255, 172);// Обязательно что бы все занчения УБЫВАЛИ 
                         Vector3 Step1 = new Vector3(251,164,66);
