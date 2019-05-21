@@ -19,7 +19,7 @@ namespace Fire_v1.Components
    public sealed class MainWindow: GameWindow
     {
 
-        bool EnableRadiusUse = false;
+        bool EnableRadiusUse = true;
 
         float partiklesLifeMAX = 1;
         float partiklesLifeMIN = 0.2f;
@@ -76,7 +76,7 @@ namespace Fire_v1.Components
         static int MaxParticles = 25000;
         float PressureMAX = 0.6f;
         float PressureMIN= 0.3f;
-        float bornSize =2f;
+        float bornSize =4f;
         float TransparentMIN = 255;
       
 
@@ -135,7 +135,7 @@ namespace Fire_v1.Components
         int LastUsedParticle = 0;
         int ItemLastB = 0;
         Particle[] ParticlesContainer = new Particle[MaxParticles];
-        Particle[] LastB = new Particle[MaxParticles];
+//        Particle[] LastB = new Particle[MaxParticles];
         int FindUnusedParticle()
         {
             int maxLife = 0;
@@ -174,10 +174,10 @@ namespace Fire_v1.Components
         {
             Array.Sort(ParticlesContainer, new Particle());
         }
-        void SortParticlesLastB()
+/*        void SortParticlesLastB()
         {
             Array.Sort(LastB, new Particle());
-        }
+        }*/
 
         //OIT - Без сортировки прозрачность
 
@@ -206,7 +206,7 @@ namespace Fire_v1.Components
         protected override void OnLoad(EventArgs e)
         {
             //CursorVisible = true;
-            LastB = new Particle[MaxParticles];
+            //LastB = new Particle[MaxParticles];
             //Particle p1 = new Particle { cameradistance = 1f };
             //Particle p2 = new Particle { cameradistance = 2222f };
             //Particle p3 = new Particle { cameradistance = 167f };
@@ -324,7 +324,7 @@ namespace Fire_v1.Components
 
             _increment = 15f;
 
-            PowerNoise = 0.05f;
+            PowerNoise = 0.08f;
             _offset = new Vector3(678,3489,-700);
         }
 
@@ -473,14 +473,12 @@ namespace Fire_v1.Components
                
             LastRadius = radiusSpawn;
      
-            if (!test)
-                SortParticles();
+       /*     if (!test)
+                SortParticles();*/
       
             int ParticlesCount = 0;
             for (int i = 0; i < MaxParticles; i++)
             {
-
-                
                 if (ParticlesContainer[i].life > 0.0f)
                 {
                     Particle p = ParticlesContainer[i];
@@ -513,7 +511,7 @@ namespace Fire_v1.Components
                             p.g = (char)(Step0.Y - (razniY * gradientPr));
                             p.b = (char)(Step0.Z - (razniZ * gradientPr));
                         }
-                        if (gradientPr >= 0.45f && gradientPr < 0.75f)
+                        if (gradientPr >= 0.45f && gradientPr < 0.75f &&!(partiklesLifeMAX * 0.3f > p.TotalLife))
                         {
                             int razniX = (int)(Step1.X - Step2.X);
                             int razniY = (int)(Step1.Y - Step2.Y);
@@ -523,7 +521,7 @@ namespace Fire_v1.Components
                             p.g = (char)(Step1.Y - (razniY * gradientPr));
                             p.b = (char)(Step1.Z - (razniZ * gradientPr));
                         }
-                        if (gradientPr >= 0.75f)
+                        if (gradientPr >= 0.9f && !(partiklesLifeMAX * 0.7f > p.TotalLife))
                         {
                             int razniX = (int)(Step2.X - Step3.X);
                             int razniY = (int)(Step2.Y - Step3.Y);
@@ -535,7 +533,7 @@ namespace Fire_v1.Components
                         }
 
 
-                        if (test)
+/*                        if (test)
                         {
                             LastB[ItemLastB].pos = p.pos;
                             LastB[ItemLastB].life = p.life;
@@ -563,24 +561,44 @@ namespace Fire_v1.Components
                             g_particule_color_data[4 * ParticlesCount + 2] = (byte)p.b;
                             g_particule_color_data[4 * ParticlesCount + 3] = (byte)((char)(TransparentMIN * calcLife));
                             CountParticlesl++;
-                        }
+                        }*/
                     }
                     else
                     {
                       
                         p.ChangePos(PowerNoise, _offset, _increment);
-                        p.cameradistance = -1.0f;
-                        LastB[ItemLastB].cameradistance = -1.0f;
-                        ItemLastB++;
+                        p.cameradistance = -1;
+
+//                        LastB[ItemLastB].cameradistance = p.cameradistance;
+//                        ItemLastB++;
                     }
                     ParticlesContainer[i] = p;
                     ParticlesCount++;
 
                 }
             }
+
+            SortParticles();
+
+            for (int i = 0; i < ParticlesCount; i++)
+            {
+                Particle p = ParticlesContainer[i];
+                g_particule_position_size_data[4 * i + 0] = p.pos.X;
+                g_particule_position_size_data[4 * i + 1] = p.pos.Y;
+                g_particule_position_size_data[4 * i + 2] = p.pos.Z;
+
+                g_particule_position_size_data[4 * i + 3] = p.bornSize * p.calcLife;
+
+                g_particule_color_data[4 * i + 0] = (byte)p.r;
+                g_particule_color_data[4 * i + 1] = (byte)p.g;
+                g_particule_color_data[4 * i + 2] = (byte)p.b;
+                g_particule_color_data[4 * i + 3] = (byte)((char)(TransparentMIN * p.calcLife));
+            }
+
+
             _offset.Y -= stepOfsetY;
 
-            if (test)
+/*            if (test)
             { 
                 SortParticlesLastB();
 
@@ -601,7 +619,7 @@ namespace Fire_v1.Components
                         g_particule_color_data[4 * i + 3] = (byte)((char)(TransparentMIN * LastB[i].calcLife));
                     }
                 }
-            }
+            }*/
 
             //printf("%d ",ParticlesCount);
 
@@ -690,7 +708,7 @@ namespace Fire_v1.Components
             // for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4), 
             // but faster.
 
-
+           GL.Disable(EnableCap.DepthTest);
 
             GL.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4, ParticlesCount);
 
