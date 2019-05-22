@@ -41,9 +41,10 @@ namespace Fire_v1.Components
        
         public float TimeToLive;
 
-        public int ParticlePerFrame = 1000;
+        public int ParticlePerFrame = 500;
 
-        public float PowerNoise;
+        public float PowerNoise = 0.05f;
+        public float PowerSmokeNoise = 0.01f;
 
         public int CountPartikle;
 
@@ -77,6 +78,7 @@ namespace Fire_v1.Components
         float PressureMAX = 0.6f;
         float PressureMIN= 0.3f;
         float bornSize =4f;
+        float sizeSmoke = 0.3f;
         float TransparentMIN = 255;
       
 
@@ -90,6 +92,12 @@ namespace Fire_v1.Components
             public float cameradistance; // *Squared* distance to the camera. if dead : -1.0f
             public float calcLife;
             public DateTime LifeDT;
+            public bool smoke;
+            public bool IniSmoke;
+
+            public bool GLOWWORM;
+            public bool initGLOWWORM;
+
 
             public bool Sravn (Particle that)
             {
@@ -266,7 +274,6 @@ namespace Fire_v1.Components
             GL.AttachShader(prog, programID_frag);
             GL.LinkProgram(prog);
 
-            //Возможно поттебуется отчистка шейдеров
 
              CameraRight_worldspace_ID = GL.GetUniformLocation(prog, "CameraRight_worldspace");
              CameraUp_worldspace_ID = GL.GetUniformLocation(prog, "CameraUp_worldspace");
@@ -324,7 +331,7 @@ namespace Fire_v1.Components
 
             _increment = 15f;
 
-            PowerNoise = 0.08f;
+           
             _offset = new Vector3(678,3489,-700);
         }
 
@@ -456,7 +463,8 @@ namespace Fire_v1.Components
                 ParticlesContainer[particleIndex].speed = (maindir + randomdir) * spread;
                 //Debug.WriteLine(ParticlesContainer[particleIndex].pos.X.ToString() + "  " + ParticlesContainer[particleIndex].pos.Y.ToString() + "  " + ParticlesContainer[particleIndex].pos.Z.ToString() + "   speed: " + ParticlesContainer[particleIndex].speed.X.ToString() + " " + ParticlesContainer[particleIndex].speed.Y.ToString() + " " + ParticlesContainer[particleIndex].speed.Z.ToString() + " Life: " + ParticlesContainer[particleIndex].life.ToString() + " RandomDir: " + randomdir.X.ToString() + "  " + randomdir.Y.ToString() + "  " + randomdir.Z.ToString());
 
-
+                ParticlesContainer[particleIndex].smoke = false;
+                ParticlesContainer[particleIndex].IniSmoke = false;
                 // Very bad way to generate a random color
                 ParticlesContainer[particleIndex].r = (char)251;
                 ParticlesContainer[particleIndex].g = (char)255;
@@ -487,94 +495,167 @@ namespace Fire_v1.Components
                     if (p.life > 0.0f)
                     {
 
-                        p.ChangePos(PowerNoise, _offset, _increment);
+                       
                         p.cameradistance = new Vector3(p.pos - CameraPosition).Length;
                         float calcLife =p.life / p.TotalLife;
                         p.calcLife = calcLife;
                         //Debug.WriteLine(calcLife.ToString());
                         //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
-                        
-                        float gradientPr = 1f - calcLife;
 
-                        Vector3 Step0 = new Vector3(252, 255, 172);// Обязательно что бы все занчения УБЫВАЛИ 
-                        Vector3 Step1 = new Vector3(251,164,66);
-                        Vector3 Step2 = new Vector3(212, 48, 66);
-                        Vector3 Step3 = new Vector3(5, 0, 0);
-
-                        if (gradientPr < 0.45f)
+                        if (!p.smoke && !p.GLOWWORM)
                         {
-                            int razniX = (int)(Step0.X - Step1.X);
-                            int razniY = (int)(Step0.Y - Step1.Y);
-                            int razniZ = (int)(Step0.Z - Step1.Z);
-
-                            p.r = (char)(Step0.X - (razniX * gradientPr));
-                            p.g = (char)(Step0.Y - (razniY * gradientPr));
-                            p.b = (char)(Step0.Z - (razniZ * gradientPr));
-                        }
-                        if (gradientPr >= 0.45f && gradientPr < 0.75f &&!(partiklesLifeMAX * 0.3f > p.TotalLife))
-                        {
-                            int razniX = (int)(Step1.X - Step2.X);
-                            int razniY = (int)(Step1.Y - Step2.Y);
-                            int razniZ = (int)(Step1.Z - Step2.Z);
-
-                            p.r = (char)(Step1.X - (razniX * gradientPr));
-                            p.g = (char)(Step1.Y - (razniY * gradientPr));
-                            p.b = (char)(Step1.Z - (razniZ * gradientPr));
-                        }
-                        if (gradientPr >= 0.9f && !(partiklesLifeMAX * 0.7f > p.TotalLife))
-                        {
-                            int razniX = (int)(Step2.X - Step3.X);
-                            int razniY = (int)(Step2.Y - Step3.Y);
-                            int razniZ = (int)(Step2.Z - Step3.Z);
-
-                            p.r = (char)(Step2.X - (razniX * gradientPr));
-                            p.g = (char)(Step2.Y - (razniY * gradientPr));
-                            p.b = (char)(Step2.Z - (razniZ * gradientPr));
-                        }
 
 
-/*                        if (test)
-                        {
-                            LastB[ItemLastB].pos = p.pos;
-                            LastB[ItemLastB].life = p.life;
-                            LastB[ItemLastB].size = p.size;
-                            LastB[ItemLastB].TotalLife = p.TotalLife;
-                            LastB[ItemLastB].bornSize = p.bornSize;
-                            LastB[ItemLastB].calcLife = p.calcLife;
-                            LastB[ItemLastB].cameradistance = p.cameradistance;
-                            LastB[ItemLastB].r = p.r;
-                            LastB[ItemLastB].g = p.g;
-                            LastB[ItemLastB].b = p.b;
-                            ItemLastB++;
+                            float gradientPr = 1f - calcLife;
+
+                         
+
+                            Vector3 Step0 = new Vector3(252, 255, 172);// Обязательно что бы все занчения УБЫВАЛИ 
+                            Vector3 Step1 = new Vector3(251, 164, 66);
+                            Vector3 Step2 = new Vector3(212, 48, 66);
+                            Vector3 Step3 = new Vector3(5, 0, 0);
+
+                            if (gradientPr < 0.45f)
+                            {
+                                int razniX = (int)(Step0.X - Step1.X);
+                                int razniY = (int)(Step0.Y - Step1.Y);
+                                int razniZ = (int)(Step0.Z - Step1.Z);
+
+                                p.r = (char)(Step0.X - (razniX * gradientPr));
+                                p.g = (char)(Step0.Y - (razniY * gradientPr));
+                                p.b = (char)(Step0.Z - (razniZ * gradientPr));
+                            }
+                            if (gradientPr >= 0.45f && gradientPr < 0.75f /*&& !(partiklesLifeMAX * 0.3f > p.TotalLife)*/)
+                            {
+                                int razniX = (int)(Step1.X - Step2.X);
+                                int razniY = (int)(Step1.Y - Step2.Y);
+                                int razniZ = (int)(Step1.Z - Step2.Z);
+
+                                p.r = (char)(Step1.X - (razniX * gradientPr));
+                                p.g = (char)(Step1.Y - (razniY * gradientPr));
+                                p.b = (char)(Step1.Z - (razniZ * gradientPr));
+                            }
+                            if (gradientPr >= 0.9f /* && !(partiklesLifeMAX * 0.7f > p.TotalLife)*/)
+                            {
+                                int razniX = (int)(Step2.X - Step3.X);
+                                int razniY = (int)(Step2.Y - Step3.Y);
+                                int razniZ = (int)(Step2.Z - Step3.Z);
+
+                                p.r = (char)(Step2.X - (razniX * gradientPr));
+                                p.g = (char)(Step2.Y - (razniY * gradientPr));
+                                p.b = (char)(Step2.Z - (razniZ * gradientPr));
+                            }
+                            p.a = (char)(TransparentMIN * p.calcLife);
+                            p.size = p.bornSize * p.calcLife;
+                            double randomSmokeChanse = random.NextDouble();
+                            if (randomSmokeChanse > 0.98f)
+                            {
+                                p.size = 0.2f;
+                                p.smoke = true;
+                                p.GLOWWORM = false;
+                                p.life = p.TotalLife * 2;
+                                p.TotalLife = p.life;
+                                p.IniSmoke = false;
+                            }
+                            else
+                            {
+                                if (randomSmokeChanse > 0.9795f )
+                                {
+                                    p.size = 0.3f * (float)random.NextDouble();
+                                    p.smoke = false;
+                                    p.GLOWWORM = true;
+                                    p.life = p.TotalLife * 2;
+                                    p.TotalLife = p.life;
+                                    p.initGLOWWORM = false;
+                                }
+                            }
+                            p.ChangePos(PowerNoise, _offset, _increment);
+
                         }
                         else
                         {
-                            // Fill the GPU buffer
-                            g_particule_position_size_data[4 * ParticlesCount + 0] = p.pos.X;
-                            g_particule_position_size_data[4 * ParticlesCount + 1] = p.pos.Y;
-                            g_particule_position_size_data[4 * ParticlesCount + 2] = p.pos.Z;
 
-                            g_particule_position_size_data[4 * ParticlesCount + 3] = p.bornSize * calcLife;
+                            if (p.GLOWWORM && !p.initGLOWWORM)
+                            {
+                                p.r = (char)247;
+                                p.g = (char)137;
+                                p.b = (char)8;
+                                p.a = (char)(255 * p.calcLife);
+                                p.initGLOWWORM = true;
+                            }
+                            if (!p.IniSmoke && p.smoke)
+                            {
+                               
+                                    //Debug.WriteLine("держите дым");
+                                int randomGray = random.Next(50,70);
 
-                            g_particule_color_data[4 * ParticlesCount + 0] = (byte)p.r;
-                            g_particule_color_data[4 * ParticlesCount + 1] = (byte)p.g;
-                            g_particule_color_data[4 * ParticlesCount + 2] = (byte)p.b;
-                            g_particule_color_data[4 * ParticlesCount + 3] = (byte)((char)(TransparentMIN * calcLife));
-                            CountParticlesl++;
-                        }*/
+                                p.r = (char)randomGray;
+                                p.g = (char)randomGray;
+                                p.b = (char)randomGray;
+                                p.a = (char)(255 * (1-p.calcLife));
+                                p.IniSmoke = true;
+                            }
+                            if (p.smoke)
+                                p.size += sizeSmoke;
+
+                            p.ChangePos(PowerSmokeNoise, _offset, _increment);
+
+                        }
+
+                        /*                        if (test)
+                                                {
+                                                    LastB[ItemLastB].pos = p.pos;
+                                                    LastB[ItemLastB].life = p.life;
+                                                    LastB[ItemLastB].size = p.size;
+                                                    LastB[ItemLastB].TotalLife = p.TotalLife;
+                                                    LastB[ItemLastB].bornSize = p.bornSize;
+                                                    LastB[ItemLastB].calcLife = p.calcLife;
+                                                    LastB[ItemLastB].cameradistance = p.cameradistance;
+                                                    LastB[ItemLastB].r = p.r;
+                                                    LastB[ItemLastB].g = p.g;
+                                                    LastB[ItemLastB].b = p.b;
+                                                    ItemLastB++;
+                                                }
+                                                else
+                                                {
+                                                    // Fill the GPU buffer
+                                                    g_particule_position_size_data[4 * ParticlesCount + 0] = p.pos.X;
+                                                    g_particule_position_size_data[4 * ParticlesCount + 1] = p.pos.Y;
+                                                    g_particule_position_size_data[4 * ParticlesCount + 2] = p.pos.Z;
+
+                                                    g_particule_position_size_data[4 * ParticlesCount + 3] = p.bornSize * calcLife;
+
+                                                    g_particule_color_data[4 * ParticlesCount + 0] = (byte)p.r;
+                                                    g_particule_color_data[4 * ParticlesCount + 1] = (byte)p.g;
+                                                    g_particule_color_data[4 * ParticlesCount + 2] = (byte)p.b;
+                                                    g_particule_color_data[4 * ParticlesCount + 3] = (byte)((char)(TransparentMIN * calcLife));
+                                                    CountParticlesl++;
+                                                }*/
                     }
                     else
                     {
-                      
-                        p.ChangePos(PowerNoise, _offset, _increment);
-                        p.cameradistance = -1;
 
-//                        LastB[ItemLastB].cameradistance = p.cameradistance;
-//                        ItemLastB++;
+                        p.ChangePos(PowerNoise, _offset, _increment);
+                        p.cameradistance = new Vector3(p.pos - CameraPosition).Length;
+                        p.smoke = false;
+                        p.IniSmoke = false;
+                        p.initGLOWWORM = false;
+                        p.GLOWWORM = false;
+                        //                        LastB[ItemLastB].cameradistance = p.cameradistance;
+                        //                        ItemLastB++;
                     }
                     ParticlesContainer[i] = p;
                     ParticlesCount++;
 
+                }
+                else
+                {
+                    //if (ParticlesContainer[i].smoke)
+                    //    ParticlesContainer[i].ChangePos(PowerSmokeNoise, _offset, _increment);
+                    //else
+                    //    ParticlesContainer[i].ChangePos(PowerNoise, _offset, _increment);
+                    ParticlesContainer[i].a =(char)0;
+                    ParticlesCount++;
                 }
             }
 
@@ -587,12 +668,12 @@ namespace Fire_v1.Components
                 g_particule_position_size_data[4 * i + 1] = p.pos.Y;
                 g_particule_position_size_data[4 * i + 2] = p.pos.Z;
 
-                g_particule_position_size_data[4 * i + 3] = p.bornSize * p.calcLife;
+                g_particule_position_size_data[4 * i + 3] =p.size;
 
                 g_particule_color_data[4 * i + 0] = (byte)p.r;
                 g_particule_color_data[4 * i + 1] = (byte)p.g;
                 g_particule_color_data[4 * i + 2] = (byte)p.b;
-                g_particule_color_data[4 * i + 3] = (byte)((char)(TransparentMIN * p.calcLife));
+                g_particule_color_data[4 * i + 3] = (byte)p.a;
             }
 
 
