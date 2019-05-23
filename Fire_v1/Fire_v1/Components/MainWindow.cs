@@ -16,7 +16,7 @@ using System.Drawing.Imaging;
 
 namespace Fire_v1.Components
 {
-   public sealed class MainWindow: GameWindow
+    public sealed class MainWindow : GameWindow
     {
 
         bool EnableRadiusUse = true;
@@ -35,15 +35,15 @@ namespace Fire_v1.Components
         public float CentrY = 0;
 
         public float dirt;
-    
+
         public float rangSpawn;
 
-       
+
         public float TimeToLive;
 
         public int ParticlePerFrame = 500;
 
-        public float PowerNoise = 0.05f;
+        public float PowerNoise = 0.07f;
         public float PowerSmokeNoise = 0.01f;
 
         public int CountPartikle;
@@ -53,34 +53,34 @@ namespace Fire_v1.Components
         public float radiusSpawn;
 
         //public Vector3 Range;
-        public int CountParticlesl =0;
+        public int CountParticlesl = 0;
 
         public float[] RandomfX;
-        
+
         public float[] RandomfZ;
 
         float stepOfsetY = 10;
-    
+
         public Vector3 _offset, _offsetSpeed;
 
 
-        int RandomItemX = 0;
-        int RandomItemZ = 0;
+        //int RandomItemX = 0;
+        //int RandomItemZ = 0;
         public float LastRadius;
 
         //float RandomX;
         //float RandomZ;
         public float[] RandomTheta;
-        public int RandomItemTheta=0;
+        public int RandomItemTheta = 0;
         public float[] RandomForLife;
         int RandomItemLife = 0;
         static int MaxParticles = 25000;
         float PressureMAX = 0.6f;
-        float PressureMIN= 0.3f;
-        float bornSize =4f;
+        float PressureMIN = 0.3f;
+        float bornSize = 4f;
         float sizeSmoke = 0.3f;
         float TransparentMIN = 255;
-      
+
 
         //--------------------------------Unity-----------------------------------------
         public struct Particle : IComparer<Particle>
@@ -99,20 +99,28 @@ namespace Fire_v1.Components
             public bool initGLOWWORM;
 
 
-            public bool Sravn (Particle that)
+            public bool Sravn(Particle that)
             {
                 return this.cameradistance > that.cameradistance;
             }
 
             public void ChangePos(float powerN, Vector3 offset, float incr)
             {
-               
+
                 float dirX_Plus = _fastNoise.GetSimplex((pos.X + 1) * incr + offset.X, (pos.Y) * incr + offset.Y, (pos.Z) * incr + offset.Z);
                 float dirX_Minus = _fastNoise.GetSimplex((pos.X - 1) * incr + offset.X, (pos.Y) * incr + offset.Y, (pos.Z) * incr + offset.Z);
                 float dirZ_Plus = _fastNoise.GetSimplex((pos.X) * incr + offset.X, (pos.Y) * incr + offset.Y, (pos.Z + 1) * incr + offset.Z);
                 float dirZ_Minus = _fastNoise.GetSimplex((pos.X) * incr + offset.X, (pos.Y) * incr + offset.Y, (pos.Z - 1) * incr + offset.Z);
                 float dirY = _fastNoise.GetSimplex((pos.X) * incr + offset.X, (pos.Y + 1) * incr + offset.Y, (pos.Z) * incr + offset.Z);
                 //float Noise = _fastNoise.GetSimplex(xoff + _offset.x, yoff + _offset.y, zoff + _offset.z) + 1;
+                //if (dirX_Minus < dirX_Plus)               
+                //    speed.X += (dirX_Plus - dirX_Minus) * powerN;            
+                //else
+                //    speed.X += (dirX_Minus - dirX_Plus) * powerN;
+                //if (dirZ_Minus < dirZ_Plus)
+                //    speed.Z += (dirZ_Plus - dirZ_Minus) * powerN;
+                //else
+                //    speed.Z += (dirZ_Minus - dirZ_Plus) * powerN;
                 speed.X += (dirX_Minus + dirX_Plus) * powerN;
                 speed.Z += (dirZ_Minus + dirZ_Plus) * powerN;
                 speed.Y += dirY * powerN;
@@ -138,12 +146,12 @@ namespace Fire_v1.Components
             }
         }
 
-      
+
         //List<Particle> ParticlesContainer = new List<Particle>();
         int LastUsedParticle = 0;
         int ItemLastB = 0;
         Particle[] ParticlesContainer = new Particle[MaxParticles];
-//        Particle[] LastB = new Particle[MaxParticles];
+        //        Particle[] LastB = new Particle[MaxParticles];
         int FindUnusedParticle()
         {
             int maxLife = 0;
@@ -182,10 +190,10 @@ namespace Fire_v1.Components
         {
             Array.Sort(ParticlesContainer, new Particle());
         }
-/*        void SortParticlesLastB()
-        {
-            Array.Sort(LastB, new Particle());
-        }*/
+        /*        void SortParticlesLastB()
+                {
+                    Array.Sort(LastB, new Particle());
+                }*/
 
         //OIT - Без сортировки прозрачность
 
@@ -238,12 +246,12 @@ namespace Fire_v1.Components
 
 
             System.Drawing.Bitmap bmp = new System.Drawing.Bitmap(@"Components\firefly.png");
-            System.Drawing.Imaging.BitmapData bmpdata = bmp.LockBits( new System.Drawing.Rectangle (0,0,bmp.Width,bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly,System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            System.Drawing.Imaging.BitmapData bmpdata = bmp.LockBits(new System.Drawing.Rectangle(0, 0, bmp.Width, bmp.Height), System.Drawing.Imaging.ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
             bmp.UnlockBits(bmpdata);
-          
 
-            GL.TexImage2D(TextureTarget.Texture2D,0,OpenTK.Graphics.OpenGL.PixelInternalFormat.Rgba , bmpdata.Width, bmpdata.Height,
-                0,OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte,bmpdata.Scan0);
+
+            GL.TexImage2D(TextureTarget.Texture2D, 0, OpenTK.Graphics.OpenGL.PixelInternalFormat.Rgba, bmpdata.Width, bmpdata.Height,
+                0, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, bmpdata.Scan0);
 
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
@@ -275,9 +283,9 @@ namespace Fire_v1.Components
             GL.LinkProgram(prog);
 
 
-             CameraRight_worldspace_ID = GL.GetUniformLocation(prog, "CameraRight_worldspace");
-             CameraUp_worldspace_ID = GL.GetUniformLocation(prog, "CameraUp_worldspace");
-             ViewProjMatrixID = GL.GetUniformLocation(prog, "VP");
+            CameraRight_worldspace_ID = GL.GetUniformLocation(prog, "CameraRight_worldspace");
+            CameraUp_worldspace_ID = GL.GetUniformLocation(prog, "CameraUp_worldspace");
+            ViewProjMatrixID = GL.GetUniformLocation(prog, "VP");
 
             TexturID = GL.GetUniformLocation(prog, "myTextureSampler");
 
@@ -287,24 +295,24 @@ namespace Fire_v1.Components
                 ParticlesContainer[i].cameradistance = -1.0f;
             }
 
-         
 
-         //    Texture = LoadTexture(@"Components\gray.png");
+
+            //    Texture = LoadTexture(@"Components\gray.png");
 
             var vertexStride = sizeof(float);
-             billboard_vertex_buffer = GL.GenBuffer();
+            billboard_vertex_buffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, billboard_vertex_buffer);
             GL.BufferData(BufferTarget.ArrayBuffer, (IntPtr)(g_vertex_buffer_data.Length * vertexStride), g_vertex_buffer_data, BufferUsageHint.StaticDraw);
-            
+
             particles_position_buffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, particles_position_buffer);
-            GL.BufferData(BufferTarget.ArrayBuffer, MaxParticles * 4 * sizeof(float), IntPtr.Zero ,BufferUsageHint.StreamDraw);
+            GL.BufferData(BufferTarget.ArrayBuffer, MaxParticles * 4 * sizeof(float), IntPtr.Zero, BufferUsageHint.StreamDraw);
 
             particles_color_buffer = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, particles_color_buffer);
             GL.BufferData(BufferTarget.ArrayBuffer, MaxParticles * 4 * sizeof(byte), IntPtr.Zero, BufferUsageHint.StreamDraw);
 
-             lastTime = DateTime.Now;
+            lastTime = DateTime.Now;
 
 
             radiusSpawn = 4;
@@ -313,8 +321,8 @@ namespace Fire_v1.Components
             //newSprite.x += _gridSize.x * 0.5f;
             //newSprite.z += _gridSize.z * 0.5f;
             //Particals.Add(Instantiate(ParcticleSprite, newSprite, transform.rotation));
-            RandomfX = MakeRandom(radiusSpawn, 200);
-            RandomfZ = MakeRandom(radiusSpawn, 100);
+            //RandomfX = MakeRandom(radiusSpawn, 200);
+            //RandomfZ = MakeRandom(radiusSpawn, 100);
 
             //RandomTheta = MakeRandom(0, 2f*3.14159f , 400);
             //TransformPositionX = transform.position.x;
@@ -325,14 +333,14 @@ namespace Fire_v1.Components
             _fastNoise = new FastNoise();
 
             //--------------------------------------------------------
-         
+
 
             RandomForLife = MakeRandom(partiklesLifeMIN, partiklesLifeMAX, 50);
 
             _increment = 15f;
 
-           
-            _offset = new Vector3(678,3489,-700);
+
+            _offset = new Vector3(678, 3489, -700);
         }
 
         static float[] g_particule_position_size_data = new float[MaxParticles * 4];
@@ -374,7 +382,7 @@ namespace Fire_v1.Components
             else
                 test = false;
         }
-        float up= 1;
+        float up = 1;
         Matrix4 _ViewMatrix;
         Matrix4 _projectionMatrix;
         private void CreateProjection()
@@ -394,13 +402,13 @@ namespace Fire_v1.Components
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             int s = (int)(1f / e.Time);
-            Title = "(Vsync: {VSync}) FPS: " + s.ToString() ;
+            Title = "(Vsync: {VSync}) FPS: " + s.ToString();
 
             Color4 backColor;
             backColor.A = 1.0f;
             backColor.R = 0.0f;
-            backColor.G = 0.1f;
-            backColor.B = 0.3f;
+            backColor.G = 0.0f;
+            backColor.B = 0.0f;
             GL.ClearColor(backColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -411,16 +419,16 @@ namespace Fire_v1.Components
             //lastTime = currentTime;
             Vector3 CameraPosition = new Vector3(30 + up, 20 + up, 10 + up);
             CreateProjection();
-            _ViewMatrix = Matrix4.LookAt(CameraPosition, new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
+            _ViewMatrix = Matrix4.LookAt(CameraPosition, new Vector3(0.0f, 20.0f, 0.0f), new Vector3(0, 1, 0));
             //// We will need the camera's position in order to sort the particles
             //// w.r.t the camera's distance.
             //// There should be a getCameraPosition() function in common/controls.cpp, 
             //// but this works too.
             //glm::vec3 CameraPosition(glm::inverse(ViewMatrix)[3]);
 
-           //тут бред написан. Не знаю пока как вычестя ть это .
+            //тут бред написан. Не знаю пока как вычестя ть это .
 
-            Matrix4 ViewProjectionMatrix =  _ViewMatrix * _projectionMatrix ;
+            Matrix4 ViewProjectionMatrix = _ViewMatrix * _projectionMatrix;
 
             int newparticles = (int)(e.Time * 10000.0);
             if (newparticles > (int)(0.016f * 10000.0))
@@ -432,9 +440,9 @@ namespace Fire_v1.Components
                 RandomfX = MakeRandom(radiusSpawn, 100);
                 RandomfZ = MakeRandom(radiusSpawn, 200);
             }
-           
+
             for (int i = 0; i < ParticlePerFrame; i++)
-            { 
+            {
                 int particleIndex = FindUnusedParticle();
 
                 float theta = (float)(2f * Math.PI) * (float)random.NextDouble();
@@ -445,8 +453,8 @@ namespace Fire_v1.Components
                 float py = distance * (float)Math.Sin(theta) + CentrY;
 
                 ParticlesContainer[particleIndex].pos = new Vector3(px, 0, py);
-                
-         
+
+
                 float spread = 0.9f;
                 Vector3 maindir = new Vector3(0.01f, PressureMAX, 0.01f);
                 if (EnableRadiusUse)
@@ -455,9 +463,9 @@ namespace Fire_v1.Components
                     ParticlesContainer[particleIndex].life = RandomForLife[RandomItemLife];
                 ParticlesContainer[particleIndex].TotalLife = ParticlesContainer[particleIndex].life;
                 RandomItemLife++;
-               
+
                 double RandPress = random.NextDouble();
-                float PressureRes = PressureMIN + (PressureMAX - PressureMIN)* (float)RandPress;
+                float PressureRes = PressureMIN + (PressureMAX - PressureMIN) * (float)RandPress;
                 Vector3 randomdir = new Vector3(0, PressureRes, 0);
 
                 ParticlesContainer[particleIndex].speed = (maindir + randomdir) * spread;
@@ -473,17 +481,17 @@ namespace Fire_v1.Components
                 ParticlesContainer[particleIndex].cameradistance = new Vector3(ParticlesContainer[particleIndex].pos - CameraPosition).Length;
                 ParticlesContainer[particleIndex].bornSize = bornSize;
                 ParticlesContainer[particleIndex].size = bornSize;
- 
+
                 if (RandomItemLife > 48)
                     RandomItemLife = 0;
-           
+
             }
-               
+
             LastRadius = radiusSpawn;
-     
-       /*     if (!test)
-                SortParticles();*/
-      
+
+            /*     if (!test)
+                     SortParticles();*/
+
             int ParticlesCount = 0;
             for (int i = 0; i < MaxParticles; i++)
             {
@@ -495,9 +503,9 @@ namespace Fire_v1.Components
                     if (p.life > 0.0f)
                     {
 
-                       
+
                         p.cameradistance = new Vector3(p.pos - CameraPosition).Length;
-                        float calcLife =p.life / p.TotalLife;
+                        float calcLife = p.life / p.TotalLife;
                         p.calcLife = calcLife;
                         //Debug.WriteLine(calcLife.ToString());
                         //ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;
@@ -508,7 +516,7 @@ namespace Fire_v1.Components
 
                             float gradientPr = 1f - calcLife;
 
-                         
+
 
                             Vector3 Step0 = new Vector3(252, 255, 172);// Обязательно что бы все занчения УБЫВАЛИ 
                             Vector3 Step1 = new Vector3(251, 164, 66);
@@ -559,7 +567,7 @@ namespace Fire_v1.Components
                             }
                             else
                             {
-                                if (randomSmokeChanse > 0.9795f )
+                                if (randomSmokeChanse > 0.9795f)
                                 {
                                     p.size = 0.3f * (float)random.NextDouble();
                                     p.smoke = false;
@@ -585,14 +593,14 @@ namespace Fire_v1.Components
                             }
                             if (!p.IniSmoke && p.smoke)
                             {
-                               
-                                    //Debug.WriteLine("держите дым");
-                                int randomGray = random.Next(50,70);
+
+                                //Debug.WriteLine("держите дым");
+                                int randomGray = random.Next(50, 70);
 
                                 p.r = (char)randomGray;
                                 p.g = (char)randomGray;
                                 p.b = (char)randomGray;
-                                p.a = (char)(255 * (1-p.calcLife));
+                                p.a = (char)(255 * (1 - p.calcLife));
                                 p.IniSmoke = true;
                             }
                             if (p.smoke)
@@ -654,7 +662,7 @@ namespace Fire_v1.Components
                     //    ParticlesContainer[i].ChangePos(PowerSmokeNoise, _offset, _increment);
                     //else
                     //    ParticlesContainer[i].ChangePos(PowerNoise, _offset, _increment);
-                    ParticlesContainer[i].a =(char)0;
+                    ParticlesContainer[i].a = (char)0;
                     ParticlesCount++;
                 }
             }
@@ -668,7 +676,7 @@ namespace Fire_v1.Components
                 g_particule_position_size_data[4 * i + 1] = p.pos.Y;
                 g_particule_position_size_data[4 * i + 2] = p.pos.Z;
 
-                g_particule_position_size_data[4 * i + 3] =p.size;
+                g_particule_position_size_data[4 * i + 3] = p.size;
 
                 g_particule_color_data[4 * i + 0] = (byte)p.r;
                 g_particule_color_data[4 * i + 1] = (byte)p.g;
@@ -679,28 +687,28 @@ namespace Fire_v1.Components
 
             _offset.Y -= stepOfsetY;
 
-/*            if (test)
-            { 
-                SortParticlesLastB();
+            /*            if (test)
+                        { 
+                            SortParticlesLastB();
 
 
-                for (int i = 0; i < ItemLastB; i++)
-                {
-                    if (LastB[i].life > 0.0f )
-                    {
-                        g_particule_position_size_data[4 * i + 0] = LastB[i].pos.X;
-                        g_particule_position_size_data[4 * i + 1] = LastB[i].pos.Y;
-                        g_particule_position_size_data[4 * i + 2] = LastB[i].pos.Z;
+                            for (int i = 0; i < ItemLastB; i++)
+                            {
+                                if (LastB[i].life > 0.0f )
+                                {
+                                    g_particule_position_size_data[4 * i + 0] = LastB[i].pos.X;
+                                    g_particule_position_size_data[4 * i + 1] = LastB[i].pos.Y;
+                                    g_particule_position_size_data[4 * i + 2] = LastB[i].pos.Z;
 
-                        g_particule_position_size_data[4 * i + 3] = LastB[i].bornSize * LastB[i].calcLife;
+                                    g_particule_position_size_data[4 * i + 3] = LastB[i].bornSize * LastB[i].calcLife;
 
-                        g_particule_color_data[4 * i + 0] = (byte)LastB[i].r;
-                        g_particule_color_data[4 * i + 1] = (byte)LastB[i].g;
-                        g_particule_color_data[4 * i + 2] = (byte)LastB[i].b;
-                        g_particule_color_data[4 * i + 3] = (byte)((char)(TransparentMIN * LastB[i].calcLife));
-                    }
-                }
-            }*/
+                                    g_particule_color_data[4 * i + 0] = (byte)LastB[i].r;
+                                    g_particule_color_data[4 * i + 1] = (byte)LastB[i].g;
+                                    g_particule_color_data[4 * i + 2] = (byte)LastB[i].b;
+                                    g_particule_color_data[4 * i + 3] = (byte)((char)(TransparentMIN * LastB[i].calcLife));
+                                }
+                            }
+                        }*/
 
             //printf("%d ",ParticlesCount);
 
@@ -789,7 +797,7 @@ namespace Fire_v1.Components
             // for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4), 
             // but faster.
 
-           GL.Disable(EnableCap.DepthTest);
+            GL.Disable(EnableCap.DepthTest);
 
             GL.DrawArraysInstanced(PrimitiveType.TriangleStrip, 0, 4, ParticlesCount);
 
@@ -798,26 +806,26 @@ namespace Fire_v1.Components
             GL.DisableVertexAttribArray(2);
 
             GL.UseProgram(0);
-
+            GL.Enable(EnableCap.DepthTest);
             //в модел вюь её закинуть просто
 
             //МНОЖИТЬ МАТРИЦЫ НУЖНО В ОБРАТНОМ ПОРЯДКЕ!!!!!
 
-           
 
-            rotx += 2.5f; roty += 1.5f; rotz += 0.4f;
-            modelView = Matrix4.CreateRotationX((float)(rotx * Math.PI / 180)) * Matrix4.CreateRotationY((float)(rotx * Math.PI / 180)) * Matrix4.CreateRotationZ((float)(rotx * Math.PI / 180)) * Matrix4.CreateTranslation(0, 0, -5.0f);
 
-            CreateProjection();
-            _ViewMatrix = Matrix4.LookAt(new Vector3(30+up, 20+up, 10+up), new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
+            //rotx += 2.5f; roty += 1.5f; rotz += 0.4f;
+            //modelView = Matrix4.CreateRotationX((float)(rotx * Math.PI / 180)) * Matrix4.CreateRotationY((float)(rotx * Math.PI / 180)) * Matrix4.CreateRotationZ((float)(rotx * Math.PI / 180)) * Matrix4.CreateTranslation(0, 0, -5.0f);
 
-            modelView = _ViewMatrix * _projectionMatrix;
+            //CreateProjection();
+            //_ViewMatrix = Matrix4.LookAt(new Vector3(30 + up, 20 + up, 10 + up), new Vector3(0.0f, 15.0f, 0.0f), new Vector3(0, 1, 0));
+
+            //modelView = _ViewMatrix * _projectionMatrix;
 
             //Vector3 CameraPosition = new Vector3(1, 1, 1);
 
             //Matrix4 ViewProjectionMatrix = _ViewMatrix * _projectionMatrix;
 
-
+            GL.BindTexture(TextureTarget.Texture2D, 0);
 
             GL.MatrixMode(MatrixMode.Projection);
             //GL.LoadMatrix(ref _projectionMatrix);
@@ -825,33 +833,84 @@ namespace Fire_v1.Components
 
             GL.MatrixMode(MatrixMode.Modelview);
             //GL.Translate(1.5f,0.0f,-7.0f);
-            GL.LoadMatrix(ref modelView);
+            Matrix4 moveModel = Matrix4.CreateTranslation(0.0f, 15.0f, 0.0f);
+            Matrix4 scaleModel = Matrix4.CreateScale(6, 6, 6);
+            ViewProjectionMatrix = scaleModel * moveModel * ViewProjectionMatrix;
+            GL.LoadMatrix(ref ViewProjectionMatrix);
 
             GL.Begin(PrimitiveType.Quads);
 
-            GL.Color3(1.0f,  0.0f, 1.0f);
+            GL.Color3(1.0f, 0.0f, 0.0f);
             GL.TexCoord2(up, 0);
             GL.Vertex3(1.0f, 0.0f, -1.0f);
             GL.TexCoord2(0, 0);
             GL.Vertex3(-1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(0, up  );
+            GL.TexCoord2(0, up);
             GL.Vertex3(-1.0f, 0.0f, 1.0f);
             GL.TexCoord2(up, up);
             GL.Vertex3(1.0f, 0.0f, 1.0f);
 
+            GL.Color3(0.0f, 2.0f, 0.0f);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(-1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, -2.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(1.0f, -2.0f, 1.0f);
 
+            GL.Color3(0.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(1.0f, -2.0f, 1.0f);
+
+            GL.Color3(1.0f, 1.0f, 0.0f);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(-1.0f, -2.0f, -1.0f);
+
+            GL.Color3(0.0f, 1.0f, 1.0f);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, -2.0f, 1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(-1.0f, -2.0f, 1.0f);
+
+            GL.Color3(0.8f, 0.8f, 0.8f);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(-1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(-1.0f, -2.0f, 1.0f);
             GL.End();
 
 
             //GL.UniformMatrix4(ViewProjMatrixID, false, ref ViewProjectionMatrix);
 
-//            Debug.WriteLine(ParticlesCount);
+            //            Debug.WriteLine(ParticlesCount);
 
             SwapBuffers();
             CountParticlesl = 0;
         }
         Matrix4 modelView;
-         public int ParticlesCount = 0;
+        public int ParticlesCount = 0;
 
         int LoadDDS(string imagepath)
         {
@@ -863,7 +922,7 @@ namespace Fire_v1.Components
                 // считываем 4 символа
                 sr.Read(array, 0, 4);
 
-                return(array[0]);
+                return (array[0]);
             }
 
         }
@@ -880,7 +939,7 @@ namespace Fire_v1.Components
             int res = GL.GenTexture();
             GL.ActiveTexture(TextureUnit.Texture0);
             GL.BindTexture(TextureTarget.Texture2D, res);
-            
+
             Bitmap teximage = Image.FromFile(filename) as Bitmap;
             BitmapData texdata = teximage.LockBits(new Rectangle(0, 0, teximage.Width, teximage.Height), ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgb, teximage.Width, teximage.Height, 0, OpenTK.Graphics.OpenGL.PixelFormat.Bgr, PixelType.UnsignedByte, texdata.Scan0);
@@ -900,7 +959,7 @@ namespace Fire_v1.Components
             {
                 float r1 = random.Next((int)(s * -1.0f), (int)s);
                 double d = random.NextDouble();
-                Randoms[i] =r1 + (float)d;
+                Randoms[i] = r1 + (float)d;
             }
             return Randoms;
 
