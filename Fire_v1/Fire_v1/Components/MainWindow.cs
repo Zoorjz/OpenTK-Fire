@@ -419,7 +419,7 @@ namespace Fire_v1.Components
             //lastTime = currentTime;
             Vector3 CameraPosition = new Vector3(30 + up, 20 + up, 10 + up);
             CreateProjection();
-            _ViewMatrix = Matrix4.LookAt(CameraPosition, new Vector3(0.0f, 20.0f, 0.0f), new Vector3(0, 1, 0));
+            _ViewMatrix = Matrix4.LookAt(CameraPosition, new Vector3(0.0f, 5.0f, 0.0f), new Vector3(0, 1, 0));
             //// We will need the camera's position in order to sort the particles
             //// w.r.t the camera's distance.
             //// There should be a getCameraPosition() function in common/controls.cpp, 
@@ -533,7 +533,7 @@ namespace Fire_v1.Components
                                 p.g = (char)(Step0.Y - (razniY * gradientPr));
                                 p.b = (char)(Step0.Z - (razniZ * gradientPr));
                             }
-                            if (gradientPr >= 0.45f && gradientPr < 0.75f /*&& !(partiklesLifeMAX * 0.3f > p.TotalLife)*/)
+                            if (gradientPr >= 0.45f && gradientPr < 0.75f && !(partiklesLifeMAX * 0.3f > p.TotalLife))
                             {
                                 int razniX = (int)(Step1.X - Step2.X);
                                 int razniY = (int)(Step1.Y - Step2.Y);
@@ -543,7 +543,7 @@ namespace Fire_v1.Components
                                 p.g = (char)(Step1.Y - (razniY * gradientPr));
                                 p.b = (char)(Step1.Z - (razniZ * gradientPr));
                             }
-                            if (gradientPr >= 0.9f /* && !(partiklesLifeMAX * 0.7f > p.TotalLife)*/)
+                            if (gradientPr >= 0.9f  && !(partiklesLifeMAX * 0.7f > p.TotalLife))
                             {
                                 int razniX = (int)(Step2.X - Step3.X);
                                 int razniY = (int)(Step2.Y - Step3.Y);
@@ -601,6 +601,10 @@ namespace Fire_v1.Components
                                 p.g = (char)randomGray;
                                 p.b = (char)randomGray;
                                 p.a = (char)(255 * (1 - p.calcLife));
+                                if (p.calcLife > 0.95f)
+                                    p.a = (char)(255 * (1 - p.calcLife));
+                                else
+                                    p.a = (char)0;
                                 p.IniSmoke = true;
                             }
                             if (p.smoke)
@@ -796,6 +800,17 @@ namespace Fire_v1.Components
             // This is equivalent to :
             // for(i in ParticlesCount) : glDrawArrays(GL_TRIANGLE_STRIP, 0, 4), 
             // but faster.
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+            GL.UseProgram(0);
+            GL.Enable(EnableCap.DepthTest);
+            //GL.Translate(-10f, 0, 0);
+
+            makeEnviromet();
+           
+
+            GL.UseProgram(prog);
+            GL.BindTexture(TextureTarget.Texture2D, 1);
+
 
             GL.Disable(EnableCap.DepthTest);
 
@@ -806,7 +821,7 @@ namespace Fire_v1.Components
             GL.DisableVertexAttribArray(2);
 
             GL.UseProgram(0);
-            GL.Enable(EnableCap.DepthTest);
+            //  GL.Enable(EnableCap.DepthTest);
             //в модел вюь её закинуть просто
 
             //МНОЖИТЬ МАТРИЦЫ НУЖНО В ОБРАТНОМ ПОРЯДКЕ!!!!!
@@ -825,81 +840,83 @@ namespace Fire_v1.Components
 
             //Matrix4 ViewProjectionMatrix = _ViewMatrix * _projectionMatrix;
 
-            GL.BindTexture(TextureTarget.Texture2D, 0);
+            //  GL.BindTexture(TextureTarget.Texture2D, 0);
 
-            GL.MatrixMode(MatrixMode.Projection);
-            //GL.LoadMatrix(ref _projectionMatrix);
-            GL.LoadIdentity();
+            //  GL.MatrixMode(MatrixMode.Projection);
+            //  //GL.LoadMatrix(ref _projectionMatrix);
+            ////  GL.LoadIdentity();
 
-            GL.MatrixMode(MatrixMode.Modelview);
+            //  GL.MatrixMode(MatrixMode.Modelview);
             //GL.Translate(1.5f,0.0f,-7.0f);
-            Matrix4 moveModel = Matrix4.CreateTranslation(0.0f, 15.0f, 0.0f);
+            //Matrix4 moveModel = Matrix4.CreateTranslation(0.0f, 5.0f, 0.0f);
             Matrix4 scaleModel = Matrix4.CreateScale(6, 6, 6);
-            ViewProjectionMatrix = scaleModel * moveModel * ViewProjectionMatrix;
+
+             ViewProjectionMatrix = scaleModel* ViewProjectionMatrix;
             GL.LoadMatrix(ref ViewProjectionMatrix);
 
-            GL.Begin(PrimitiveType.Quads);
+            //GL.Translate(-10f, 0,0);
+            //GL.Begin(PrimitiveType.Quads);
 
-            GL.Color3(1.0f, 0.0f, 0.0f);
-            GL.TexCoord2(up, 0);
-            GL.Vertex3(1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(0, 0);
-            GL.Vertex3(-1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(0, up);
-            GL.Vertex3(-1.0f, 0.0f, 1.0f);
-            GL.TexCoord2(up, up);
-            GL.Vertex3(1.0f, 0.0f, 1.0f);
+            //GL.Color3(1.0f, 0.0f, 0.0f);
+            //GL.TexCoord2(up, 0);
+            //GL.Vertex3(1.0f, 0.0f, -1.0f);
+            //GL.TexCoord2(0, 0);
+            //GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            //GL.TexCoord2(0, up);
+            //GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            //GL.TexCoord2(up, up);
+            //GL.Vertex3(1.0f, 0.0f, 1.0f);
 
-            GL.Color3(0.0f, 2.0f, 0.0f);
-            GL.TexCoord2(up, 0);
-            GL.Vertex3(1.0f, -2.0f, -1.0f);
-            GL.TexCoord2(0, 0);
-            GL.Vertex3(-1.0f, -2.0f, -1.0f);
-            GL.TexCoord2(0, up);
-            GL.Vertex3(-1.0f, -2.0f, 1.0f);
-            GL.TexCoord2(up, up);
-            GL.Vertex3(1.0f, -2.0f, 1.0f);
+            //GL.Color3(0.0f, 2.0f, 0.0f);
+            //GL.TexCoord2(up, 0);
+            //GL.Vertex3(1.0f, -2.0f, -1.0f);
+            //GL.TexCoord2(0, 0);
+            //GL.Vertex3(-1.0f, -2.0f, -1.0f);
+            //GL.TexCoord2(0, up);
+            //GL.Vertex3(-1.0f, -2.0f, 1.0f);
+            //GL.TexCoord2(up, up);
+            //GL.Vertex3(1.0f, -2.0f, 1.0f);
 
-            GL.Color3(0.0f, 0.0f, 1.0f);
-            GL.TexCoord2(up, 0);
-            GL.Vertex3(1.0f, -2.0f, -1.0f);
-            GL.TexCoord2(0, 0);
-            GL.Vertex3(1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(0, up);
-            GL.Vertex3(1.0f, 0.0f, 1.0f);
-            GL.TexCoord2(up, up);
-            GL.Vertex3(1.0f, -2.0f, 1.0f);
+            //GL.Color3(0.0f, 0.0f, 1.0f);
+            //GL.TexCoord2(up, 0);
+            //GL.Vertex3(1.0f, -2.0f, -1.0f);
+            //GL.TexCoord2(0, 0);
+            //GL.Vertex3(1.0f, 0.0f, -1.0f);
+            //GL.TexCoord2(0, up);
+            //GL.Vertex3(1.0f, 0.0f, 1.0f);
+            //GL.TexCoord2(up, up);
+            //GL.Vertex3(1.0f, -2.0f, 1.0f);
 
-            GL.Color3(1.0f, 1.0f, 0.0f);
-            GL.TexCoord2(up, 0);
-            GL.Vertex3(1.0f, -2.0f, -1.0f);
-            GL.TexCoord2(0, 0);
-            GL.Vertex3(1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(0, up);
-            GL.Vertex3(-1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(up, up);
-            GL.Vertex3(-1.0f, -2.0f, -1.0f);
+            //GL.Color3(1.0f, 1.0f, 0.0f);
+            //GL.TexCoord2(up, 0);
+            //GL.Vertex3(1.0f, -2.0f, -1.0f);
+            //GL.TexCoord2(0, 0);
+            //GL.Vertex3(1.0f, 0.0f, -1.0f);
+            //GL.TexCoord2(0, up);
+            //GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            //GL.TexCoord2(up, up);
+            //GL.Vertex3(-1.0f, -2.0f, -1.0f);
 
-            GL.Color3(0.0f, 1.0f, 1.0f);
-            GL.TexCoord2(up, 0);
-            GL.Vertex3(1.0f, -2.0f, 1.0f);
-            GL.TexCoord2(0, 0);
-            GL.Vertex3(1.0f, 0.0f, 1.0f);
-            GL.TexCoord2(0, up);
-            GL.Vertex3(-1.0f, 0.0f, 1.0f);
-            GL.TexCoord2(up, up);
-            GL.Vertex3(-1.0f, -2.0f, 1.0f);
+            //GL.Color3(0.0f, 1.0f, 1.0f);
+            //GL.TexCoord2(up, 0);
+            //GL.Vertex3(1.0f, -2.0f, 1.0f);
+            //GL.TexCoord2(0, 0);
+            //GL.Vertex3(1.0f, 0.0f, 1.0f);
+            //GL.TexCoord2(0, up);
+            //GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            //GL.TexCoord2(up, up);
+            //GL.Vertex3(-1.0f, -2.0f, 1.0f);
 
-            GL.Color3(0.8f, 0.8f, 0.8f);
-            GL.TexCoord2(up, 0);
-            GL.Vertex3(-1.0f, -2.0f, -1.0f);
-            GL.TexCoord2(0, 0);
-            GL.Vertex3(-1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(0, up);
-            GL.Vertex3(-1.0f, 0.0f, 1.0f);
-            GL.TexCoord2(up, up);
-            GL.Vertex3(-1.0f, -2.0f, 1.0f);
-            GL.End();
+            //GL.Color3(0.8f, 0.8f, 0.8f);
+            //GL.TexCoord2(up, 0);
+            //GL.Vertex3(-1.0f, -2.0f, -1.0f);
+            //GL.TexCoord2(0, 0);
+            //GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            //GL.TexCoord2(0, up);
+            //GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            //GL.TexCoord2(up, up);
+            //GL.Vertex3(-1.0f, -2.0f, 1.0f);
+            //GL.End();
 
 
             //GL.UniformMatrix4(ViewProjMatrixID, false, ref ViewProjectionMatrix);
@@ -911,7 +928,98 @@ namespace Fire_v1.Components
         }
         Matrix4 modelView;
         public int ParticlesCount = 0;
+         
+       public void makeEnviromet ()
+        {
 
+            GL.Scale(4, 4, 4);
+
+
+            GL.Begin(PrimitiveType.Quads);
+
+            GL.Color3(0.8f, 0.8f, 0.8f);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(1.0f, 0.0f, 1.0f);
+            GL.End();
+            GL.Scale(0.25, 0.25, 0.25);
+
+            GL.Scale(0.5,0.5,0.5);
+            GL.Translate(0,2,4);
+            GL.Rotate(35,0,1,0);
+            
+            GL.Begin(PrimitiveType.Quads);
+
+            GL.Color3(0.6f, 0.6f, 0.6f);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(1.0f, 0.0f, 1.0f);
+
+            GL.Color3(0.6f, 0.6f, 0.6);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(-1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, -2.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(1.0f, -2.0f, 1.0f);
+
+            GL.Color3(0.6f, 0.6f, 0.6);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(1.0f, -2.0f, 1.0f);
+
+            GL.Color3(0.6f, 0.6f, 0.6);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(-1.0f, -2.0f, -1.0f);
+
+            GL.Color3(0.6f, 0.6f, 0.6);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(1.0f, -2.0f, 1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(-1.0f, -2.0f, 1.0f);
+
+            GL.Color3(0.6f, 0.6f, 0.6);
+            GL.TexCoord2(up, 0);
+            GL.Vertex3(-1.0f, -2.0f, -1.0f);
+            GL.TexCoord2(0, 0);
+            GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            GL.TexCoord2(0, up);
+            GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            GL.TexCoord2(up, up);
+            GL.Vertex3(-1.0f, -2.0f, 1.0f);
+            GL.End();
+
+            
+
+           
+        }
         int LoadDDS(string imagepath)
         {
             char[] Header = new char[124];
