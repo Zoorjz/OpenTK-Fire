@@ -399,8 +399,8 @@ namespace Fire_v1.Components
             Color4 backColor;
             backColor.A = 1.0f;
             backColor.R = 0.0f;
-            backColor.G = 0.1f;
-            backColor.B = 0.3f;
+            backColor.G = 0.0f;
+            backColor.B = 0.0f;
             GL.ClearColor(backColor);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -525,7 +525,7 @@ namespace Fire_v1.Components
                                 p.g = (char)(Step0.Y - (razniY * gradientPr));
                                 p.b = (char)(Step0.Z - (razniZ * gradientPr));
                             }
-                            if (gradientPr >= 0.45f && gradientPr < 0.75f /*&& !(partiklesLifeMAX * 0.3f > p.TotalLife)*/)
+                            if (gradientPr >= 0.45f && gradientPr < 0.75f && !(partiklesLifeMAX * 0.3f > p.TotalLife))
                             {
                                 int razniX = (int)(Step1.X - Step2.X);
                                 int razniY = (int)(Step1.Y - Step2.Y);
@@ -535,7 +535,7 @@ namespace Fire_v1.Components
                                 p.g = (char)(Step1.Y - (razniY * gradientPr));
                                 p.b = (char)(Step1.Z - (razniZ * gradientPr));
                             }
-                            if (gradientPr >= 0.9f /* && !(partiklesLifeMAX * 0.7f > p.TotalLife)*/)
+                            if (gradientPr >= 0.9f  && !(partiklesLifeMAX * 0.7f > p.TotalLife))
                             {
                                 int razniX = (int)(Step2.X - Step3.X);
                                 int razniY = (int)(Step2.Y - Step3.Y);
@@ -592,7 +592,11 @@ namespace Fire_v1.Components
                                 p.r = (char)randomGray;
                                 p.g = (char)randomGray;
                                 p.b = (char)randomGray;
-                                p.a = (char)(255 * (1-p.calcLife));
+                                if (p.calcLife > 0.95f )
+                                    p.a = (char)(255 * (1-p.calcLife));
+                                else
+                                    p.a = (char)0;
+
                                 p.IniSmoke = true;
                             }
                             if (p.smoke)
@@ -827,20 +831,20 @@ namespace Fire_v1.Components
             //GL.Translate(1.5f,0.0f,-7.0f);
             GL.LoadMatrix(ref modelView);
 
-            GL.Begin(PrimitiveType.Quads);
+            //GL.Begin(PrimitiveType.Quads);
 
-            GL.Color3(1.0f,  0.0f, 1.0f);
-            GL.TexCoord2(up, 0);
-            GL.Vertex3(1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(0, 0);
-            GL.Vertex3(-1.0f, 0.0f, -1.0f);
-            GL.TexCoord2(0, up  );
-            GL.Vertex3(-1.0f, 0.0f, 1.0f);
-            GL.TexCoord2(up, up);
-            GL.Vertex3(1.0f, 0.0f, 1.0f);
+            //GL.Color3(1.0f,  0.0f, 1.0f);
+            //GL.TexCoord2(up, 0);
+            //GL.Vertex3(1.0f, 0.0f, -1.0f);
+            //GL.TexCoord2(0, 0);
+            //GL.Vertex3(-1.0f, 0.0f, -1.0f);
+            //GL.TexCoord2(0, up  );
+            //GL.Vertex3(-1.0f, 0.0f, 1.0f);
+            //GL.TexCoord2(up, up);
+            //GL.Vertex3(1.0f, 0.0f, 1.0f);
 
 
-            GL.End();
+            //GL.End();
 
 
             //GL.UniformMatrix4(ViewProjMatrixID, false, ref ViewProjectionMatrix);
