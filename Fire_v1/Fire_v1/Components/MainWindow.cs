@@ -341,6 +341,10 @@ namespace Fire_v1.Components
 
 
             _offset = new Vector3(678, 3489, -700);
+
+            GL.Enable(EnableCap.Lighting);
+            GL.LightModel(LightModelParameter.LightModelTwoSide, 1);
+           GL.Enable(EnableCap.Normalize);
         }
 
         static float[] g_particule_position_size_data = new float[MaxParticles * 4];
@@ -795,6 +799,8 @@ namespace Fire_v1.Components
             GL.VertexBindingDivisor(1, 1);
             GL.VertexBindingDivisor(2, 1);
 
+
+
             // Draw the particules !
             // This draws many times a small triangle_strip (which looks like a quad).
             // This is equivalent to :
@@ -804,6 +810,26 @@ namespace Fire_v1.Components
             GL.UseProgram(0);
             GL.Enable(EnableCap.DepthTest);
             //GL.Translate(-10f, 0, 0);
+
+
+            
+            Matrix4 scaleModel = Matrix4.CreateScale(6, 6, 6);
+
+            ViewProjectionMatrix = scaleModel * ViewProjectionMatrix;
+            GL.LoadMatrix(ref ViewProjectionMatrix);
+
+            float[] material_diffuse = { 1.0f, 1.0f, 1.0f, 1.0f };
+            GL.Material(MaterialFace.FrontAndBack, MaterialParameter.Diffuse, material_diffuse);
+
+            float[] light2_diffuse = { 0.9f, 0.8f, 0.09f, 1.0f };
+            float[] light2_position = { 2.0f, 2.0f, 2.0f, 1.0f };
+            GL.Enable(EnableCap.Light2);
+            GL.Light(LightName.Light2, LightParameter.Diffuse, light2_diffuse);
+            GL.Light(LightName.Light2, LightParameter.Position, light2_position);
+            GL.Light(LightName.Light2, LightParameter.ConstantAttenuation, 0.0f);
+            GL.Light(LightName.Light2, LightParameter.LinearAttenuation, 0.1f);
+            GL.Light(LightName.Light2, LightParameter.QuadraticAttenuation, 0.2f);
+
 
             makeEnviromet();
            
@@ -821,6 +847,7 @@ namespace Fire_v1.Components
             GL.DisableVertexAttribArray(2);
 
             GL.UseProgram(0);
+
             //  GL.Enable(EnableCap.DepthTest);
             //в модел вюь её закинуть просто
 
@@ -849,10 +876,7 @@ namespace Fire_v1.Components
             //  GL.MatrixMode(MatrixMode.Modelview);
             //GL.Translate(1.5f,0.0f,-7.0f);
             //Matrix4 moveModel = Matrix4.CreateTranslation(0.0f, 5.0f, 0.0f);
-            Matrix4 scaleModel = Matrix4.CreateScale(6, 6, 6);
-
-             ViewProjectionMatrix = scaleModel* ViewProjectionMatrix;
-            GL.LoadMatrix(ref ViewProjectionMatrix);
+           
 
             //GL.Translate(-10f, 0,0);
             //GL.Begin(PrimitiveType.Quads);
@@ -922,7 +946,7 @@ namespace Fire_v1.Components
             //GL.UniformMatrix4(ViewProjMatrixID, false, ref ViewProjectionMatrix);
 
             //            Debug.WriteLine(ParticlesCount);
-
+            GL.Disable(EnableCap.Light2);
             SwapBuffers();
             CountParticlesl = 0;
         }
