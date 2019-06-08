@@ -34,8 +34,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FbxSharp, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>J:\Курсовая работа\OpenTK-Fire-add_3D_environment_shadows\Fire_v1\Fire_v1\bin\Debug\FbxSharp.dll</HintPath>
+    </Reference>
     <Reference Include="OpenTK">
       <HintPath>..\..\..\GLCube\WindowsFormsApplication6\bin\Debug\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>J:\Курсовая работа\OpenTK-Fire-add_3D_environment_shadows\Fire_v1\Fire_v1\bin\Debug\OpenTK.GLControl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -50,8 +58,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Components\Background.cs" />
+    <Compile Include="Components\FastNoise.cs" />
     <Compile Include="Components\MainWindow.cs" />
-    <Compile Include="Components\matrixShit.cs" />
+    <Compile Include="Components\Model.cs" />
+    <Compile Include="Form1.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form1.Designer.cs">
+      <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
