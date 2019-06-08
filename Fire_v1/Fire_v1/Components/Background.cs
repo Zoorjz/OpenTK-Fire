@@ -124,19 +124,19 @@ float shadow_shade = 1.0;
 
   if (sc1.x >= 0.0 && sc1.y >= 0.0 && sc1.x <= 1.0 && sc1.y <= 1.0 && shadow_coord1.z > 0 &&
       texture2D(shadow1, sc1.xy).x < sc1.z)
-    shadow_shade = 0.6;
+    shadow_shade = 0.5;
 
   if (sc2.x >= 0.0 && sc2.y >= 0.0 && sc2.x <= 1.0 && sc2.y <= 1.0 && shadow_coord2.z > 0 &&
       texture2D(shadow2, sc2.xy).x < sc2.z)
-    shadow_shade = 0.6;
+    shadow_shade = 0.5;
 
   if (sc3.x >= 0.0 && sc3.y >= 0.0 && sc3.x <= 1.0 && sc3.y <= 1.0 && shadow_coord3.z > 0 &&
       texture2D(shadow3, sc3.xy).x < sc3.z)
-    shadow_shade = 0.6;
+    shadow_shade = 0.5;
 
   if (sc4.x >= 0.0 && sc4.y >= 0.0 && sc4.x <= 1.0 && sc4.y <= 1.0 && shadow_coord4.z > 0 &&
       texture2D(shadow4, sc4.xy).x < sc4.z)
-    shadow_shade = 0.6;
+    shadow_shade = 0.5;
 
 
  float global_shade = 1.0;

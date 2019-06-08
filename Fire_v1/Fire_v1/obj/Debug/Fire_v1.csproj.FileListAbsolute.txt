@@ -58,3 +58,4 @@ H:\GitHub\OpenTK-Fire\Fire_v1\Fire_v1\obj\Debug\Fire_v1.pdb
 H:\GitHub\OpenTK-Fire\Fire_v1\Fire_v1\bin\Debug\FbxSharp.dll
 H:\GitHub\OpenTK-Fire\Fire_v1\Fire_v1\bin\Debug\OpenTK.GLControl.dll
 H:\GitHub\OpenTK-Fire\Fire_v1\Fire_v1\bin\Debug\OpenTK.GLControl.xml
+H:\GitHub\OpenTK-Fire\Fire_v1\Fire_v1\obj\Debug\Fire_v1.Form1.resources

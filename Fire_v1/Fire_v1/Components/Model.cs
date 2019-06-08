@@ -217,23 +217,23 @@ float shadow_shade = 1.0;
 
   if (sc1.x >= 0.0 && sc1.y >= 0.0 && sc1.x <= 1.0 && sc1.y <= 1.0 && shadow_coord1.z > 0 &&
       texture2D(shadow1, sc1.xy).x < sc1.z)
-    shadow_shade = 0.2;
+    shadow_shade = 0.4;
 
   if (sc2.x >= 0.0 && sc2.y >= 0.0 && sc2.x <= 1.0 && sc2.y <= 1.0 && shadow_coord2.z > 0 &&
       texture2D(shadow2, sc2.xy).x < sc2.z)
-    shadow_shade = 0.2;
+    shadow_shade = 0.4;
 
   if (sc3.x >= 0.0 && sc3.y >= 0.0 && sc3.x <= 1.0 && sc3.y <= 1.0 && shadow_coord3.z > 0 &&
       texture2D(shadow3, sc3.xy).x < sc3.z)
-    shadow_shade = 0.2;
+    shadow_shade = 0.4;
 
   if (sc4.x >= 0.0 && sc4.y >= 0.0 && sc4.x <= 1.0 && sc4.y <= 1.0 && shadow_coord4.z > 0 &&
       texture2D(shadow4, sc4.xy).x < sc4.z)
-    shadow_shade = 0.2;
+    shadow_shade = 0.4;
 
   if (sc5.x >= 0.0 && sc5.y >= 0.0 && sc5.x <= 1.0 && sc5.y <= 1.0 && shadow_coord5.z > 0 &&
       (texture2D(shadow5, sc5.xy).x) < sc5.z)
-    shadow_shade = 0.2;
+    shadow_shade = 0.4;
 
   float global_shade = 1.0;
   if (texture2D(shadow_GLOB, (shadow_coord_GLOB.xy*0.5)/shadow_coord_GLOB.w+vec2(0.5)).x < shadow_coord_GLOB.z*0.5/shadow_coord_GLOB.w+0.49995){
@@ -273,7 +273,7 @@ float total_shade = min(min(light_shade, shadow_shade), global_shade);
  FragColor = (base_color*total_shade+base_color*vec4(1.0, 0.75, 0.75, 1.0)*fireness)/max(total_shade+fireness, 1.0);
 
 //FragColor = (base_color*total_shade+base_color*vec4(1.0, 0.5, 0.5, 1.0)*fireness)/max(total_shade+fireness, 1.0);
-//FragColor = texture2D(tex, tc) * fireness* shadow_shade; 
+FragColor = texture2D(tex, tc) * shadow_shade; 
 //FragColor = texture2D(tex, tc) * fire ; 
 
  //FragColor = base_color;
