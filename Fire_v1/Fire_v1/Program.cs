@@ -16,7 +16,11 @@ namespace Fire_v1
         [STAThread]
         static void Main()
         {
-            new MainWindow().Run(60);
+            //   new MainWindow().Run(60);
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Form1());
+
         }
     }
 }
